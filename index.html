@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050505" />
+  <meta name="color-scheme" content="dark" />
+  <title>MSC Event Management</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <button class="brand" data-view-jump="home" aria-label="MSC home">
+        <span class="brand-mark">M</span>
+        <span class="brand-copy">
+          <strong>MSC</strong>
+          <small>Event Management</small>
+        </span>
+      </button>
+
+      <nav class="nav-list" aria-label="Workspace">
+        <button class="nav-item active" data-view="home" title="Overview"><span class="nav-icon">⌂</span><b>Overview</b></button>
+        <button class="nav-item" data-view="plan" title="Plan"><span class="nav-icon">◇</span><b>Plan</b></button>
+        <button class="nav-item" data-view="events" title="Events"><span class="nav-icon">≡</span><b>Events</b></button>
+        <button class="nav-item" data-view="board" title="Status board"><span class="nav-icon">▥</span><b>Status</b></button>
+        <button class="nav-item" data-view="calendar" title="Calendar"><span class="nav-icon">□</span><b>Calendar</b></button>
+        <button class="nav-item" data-view="venues" title="Venues"><span class="nav-icon">⌖</span><b>Venues</b></button>
+        <button class="nav-item" data-view="budget" title="Budget"><span class="nav-icon">฿</span><b>Budget</b></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button class="nav-item" id="importButton" title="Import calendar"><span class="nav-icon">↥</span><b>Import</b></button>
+        <button class="nav-item" id="exportButton" title="Export JSON"><span class="nav-icon">↧</span><b>Export</b></button>
+        <div class="save-indicator" id="saveIndicator"><span class="save-dot"></span><span>Saved locally</span></div>
+      </div>
+    </aside>
+
+    <main class="main-shell">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <div class="eyebrow" id="viewEyebrow">MSC workspace</div>
+          <h1 id="viewTitle">Overview</h1>
+          <p id="viewSubtitle">What needs attention across MSC events.</p>
+        </div>
+        <div class="topbar-actions">
+          <label class="search-box" for="globalSearch">
+            <span aria-hidden="true">⌕</span>
+            <input id="globalSearch" type="search" placeholder="Search events" autocomplete="off" />
+            <button id="clearSearchButton" type="button" class="search-clear" aria-label="Clear search">×</button>
+          </label>
+          <button class="button secondary" id="todayButton">Today</button>
+          <button class="button primary" id="newEventButton"><span>＋</span> New event</button>
+        </div>
+      </header>
+
+      <section id="homeView" class="view active" aria-label="Overview"></section>
+      <section id="planView" class="view plan-view" aria-label="Plan"></section>
+      <section id="eventsView" class="view" aria-label="Events"></section>
+      <section id="boardView" class="view" aria-label="Status board"></section>
+      <section id="calendarView" class="view" aria-label="Calendar"></section>
+      <section id="venuesView" class="view" aria-label="Venues"></section>
+      <section id="budgetView" class="view" aria-label="Budget"></section>
+    </main>
+  </div>
+
+  <aside id="eventDrawer" class="drawer" aria-hidden="true">
+    <div class="drawer-backdrop" data-close-drawer></div>
+    <section class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <div class="drawer-header">
+        <div>
+          <div class="eyebrow">Event record</div>
+          <h2 id="drawerTitle">New event</h2>
+          <p id="drawerMeta">Keep the main view simple. Store the detail here.</p>
+        </div>
+        <button class="icon-button" type="button" data-close-drawer aria-label="Close">×</button>
+      </div>
+
+      <form id="eventForm" class="event-form">
+        <input type="hidden" name="id" />
+
+        <div class="form-section first">
+          <label class="field full"><span>Event name</span><input name="name" required placeholder="e.g. Halloween Dance" /></label>
+          <label class="field full"><span>Objective</span><textarea name="objective" rows="3" placeholder="What should this event achieve?"></textarea></label>
+          <div class="field-grid two">
+            <label class="field"><span>Start</span><input name="start" type="datetime-local" /></label>
+            <label class="field"><span>End</span><input name="end" type="datetime-local" /></label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>People</h3><span>Ownership</span></div>
+          <div class="field-grid two">
+            <label class="field"><span>Person responsible</span><input name="lead" placeholder="Name" /></label>
+            <label class="field"><span>Supporting members</span><input name="supporting" placeholder="Comma separated" /></label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>Logistics</h3><span>Place, materials, money</span></div>
+          <div class="field-grid two">
+            <label class="field"><span>Venue</span><input name="venue" placeholder="Auditorium, Gym…" /></label>
+            <label class="field"><span>Materials required</span><input name="materials" placeholder="Tables, speakers…" /></label>
+          </div>
+          <div class="field-grid two">
+            <label class="field"><span>Planned budget</span><div class="currency-input"><span>฿</span><input name="budgetPlanned" type="number" min="0" step="1" placeholder="0" /></div></label>
+            <label class="field"><span>Actual spent</span><div class="currency-input"><span>฿</span><input name="budgetActual" type="number" min="0" step="1" placeholder="0" /></div></label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>Progress</h3><span>Workflow</span></div>
+          <div class="field-grid two">
+            <label class="field"><span>Status</span><select name="status"></select></label>
+            <label class="field"><span>Deadline</span><input name="deadline" type="date" /></label>
+          </div>
+          <div class="field-grid three">
+            <label class="field"><span>Approval required</span><select name="approvalRequired"><option value="false">No</option><option value="true">Yes</option></select></label>
+            <label class="field"><span>Approval status</span><select name="approvalStatus"><option>Not required</option><option>Not submitted</option><option>Awaiting approval</option><option>Approved</option><option>Rejected</option></select></label>
+            <label class="field"><span>Approver</span><input name="approver" placeholder="Advisor / Principal" /></label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>Planning logic</h3><span>Connections + contingencies</span></div>
+          <label class="field full"><span>Dependencies</span><input name="dependencies" placeholder="Comma separated event names or requirements" /></label>
+          <label class="field full"><span>Backup plan</span><textarea name="backupPlan" rows="3" placeholder="What happens if the main plan cannot run?"></textarea></label>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>After the event</h3><span>Review</span></div>
+          <label class="field full"><span>Post-event feedback</span><textarea name="feedback" rows="4" placeholder="What worked? What should change next time?"></textarea></label>
+        </div>
+
+        <div class="drawer-actions">
+          <button type="button" class="button danger ghost" id="deleteEventButton">Delete</button>
+          <div class="spacer"></div>
+          <button type="button" class="button secondary" data-close-drawer>Cancel</button>
+          <button type="submit" class="button primary">Save event</button>
+        </div>
+      </form>
+    </section>
+  </aside>
+
+  <div id="importModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">Calendar import</div>
+          <h2 id="importTitle">Import events</h2>
+          <p>Supports iCalendar (.ics / .ical) and JSON. Nothing is saved until you review it.</p>
+        </div>
+        <button class="icon-button" type="button" data-close-modal aria-label="Close">×</button>
+      </div>
+
+      <label id="dropZone" class="drop-zone">
+        <input id="calendarFile" type="file" accept=".ics,.ical,.json,text/calendar,application/json" hidden />
+        <span class="drop-icon">↥</span>
+        <strong>Choose an .ics or .json file</strong>
+        <small>or drag and drop it here</small>
+      </label>
+
+      <div id="importPreview" class="import-preview empty">
+        <div class="empty-state compact">No file selected yet.</div>
+      </div>
+
+      <div class="modal-actions split">
+        <label class="check-row"><input id="selectAllImports" type="checkbox" checked disabled /> <span>Select all</span></label>
+        <div class="cluster">
+          <button class="button secondary" type="button" data-close-modal>Cancel</button>
+          <button id="confirmImportButton" type="button" class="button primary" disabled>Import selected</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="budgetModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-budget></div>
+    <section class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="budgetTitle">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">Council budget</div>
+          <h2 id="budgetTitle">Annual budget</h2>
+          <p>Used for the overall budget progress indicator.</p>
+        </div>
+        <button class="icon-button" type="button" data-close-budget aria-label="Close">×</button>
+      </div>
+      <form id="budgetForm" class="budget-form">
+        <label class="field"><span>Annual budget (THB)</span><div class="currency-input"><span>฿</span><input name="annualBudget" type="number" min="0" step="100" required /></div></label>
+        <div class="modal-actions">
+          <button class="button secondary" type="button" data-close-budget>Cancel</button>
+          <button class="button primary" type="submit">Save budget</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
