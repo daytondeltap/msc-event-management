@@ -10,11 +10,12 @@
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar">
-      <button class="brand" data-view="plan">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <button class="brand" data-view="plan" aria-label="MSC Plan">
         <span class="brand-mark">M</span>
-        <span><strong>MSC</strong><small>Event Management</small></span>
+        <span class="brand-copy"><strong>MSC</strong><small>Event Management</small></span>
       </button>
+
       <nav class="nav-list">
         <button class="nav-item" data-view="home"><span>⌂</span><b>Overview</b></button>
         <button class="nav-item active" data-view="plan"><span>◇</span><b>Plan</b></button>
@@ -24,6 +25,7 @@
         <button class="nav-item" data-view="venues"><span>⌖</span><b>Venues</b></button>
         <button class="nav-item" data-view="budget"><span>฿</span><b>Budget</b></button>
       </nav>
+
       <div class="sidebar-bottom">
         <button class="nav-item" id="importButton"><span>↥</span><b>Import</b></button>
         <button class="nav-item" id="exportButton"><span>↧</span><b>Export</b></button>
@@ -38,13 +40,29 @@
           <h1 id="viewTitle">Plan</h1>
           <p id="viewSubtitle">Move events freely and build the schedule together.</p>
         </div>
+
         <div class="topbar-actions">
-          <label class="search-box"><span>⌕</span><input id="globalSearch" type="search" placeholder="Search events" /><button id="clearSearchButton" type="button">×</button></label>
-          <div class="presence-stack" id="presenceStack" title="People online"></div>
+          <label class="search-box" for="globalSearch">
+            <span>⌕</span>
+            <input id="globalSearch" type="search" placeholder="Search events" autocomplete="off" />
+            <button id="clearSearchButton" type="button" aria-label="Clear search">×</button>
+          </label>
+
+          <button class="presence-button" id="presenceButton" type="button" aria-label="People online">
+            <div class="presence-stack" id="presenceStack"></div>
+            <span id="presenceCount">1</span>
+          </button>
+
           <button class="button secondary" id="shareButton"><span>◎</span> Collaborate</button>
+          <button class="account-button" id="accountButton" type="button" aria-label="Account">
+            <span class="account-avatar" id="accountAvatar">G</span>
+            <span class="account-label" id="accountLabel">Sign in</span>
+          </button>
           <button class="button primary" id="newEventButton"><span>＋</span> New event</button>
         </div>
       </header>
+
+      <div class="presence-popover" id="presencePopover" aria-hidden="true"></div>
 
       <section id="homeView" class="view"></section>
       <section id="planView" class="view active plan-view"></section>
@@ -58,44 +76,142 @@
 
   <aside id="eventDrawer" class="drawer" aria-hidden="true">
     <div class="drawer-backdrop" data-close-drawer></div>
-    <section class="drawer-panel">
-      <div class="drawer-header"><div><div class="eyebrow">Event record</div><h2 id="drawerTitle">New event</h2><p>Everything important, without crowding the board.</p></div><button class="icon-button" data-close-drawer>×</button></div>
+    <section class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <div class="drawer-header">
+        <div>
+          <div class="eyebrow">Event record</div>
+          <h2 id="drawerTitle">New event</h2>
+          <p id="drawerActivity">Everything important, without crowding the board.</p>
+        </div>
+        <button class="icon-button" data-close-drawer aria-label="Close">×</button>
+      </div>
+
       <form id="eventForm" class="event-form">
         <input type="hidden" name="id" />
         <div class="form-section first">
           <label class="field full"><span>Event name</span><input name="name" required placeholder="e.g. Halloween Dance" /></label>
           <label class="field full"><span>Objective</span><textarea name="objective" rows="3" placeholder="What should this event achieve?"></textarea></label>
-          <div class="field-grid two"><label class="field"><span>Start</span><input name="start" type="datetime-local" /></label><label class="field"><span>End</span><input name="end" type="datetime-local" /></label></div>
+          <div class="field-grid two">
+            <label class="field"><span>Start</span><input name="start" type="datetime-local" /></label>
+            <label class="field"><span>End</span><input name="end" type="datetime-local" /></label>
+          </div>
         </div>
-        <div class="form-section"><div class="section-label"><h3>People</h3><span>Ownership</span></div><div class="field-grid two"><label class="field"><span>Person responsible</span><input name="lead" /></label><label class="field"><span>Supporting members</span><input name="supporting" placeholder="Comma separated" /></label></div></div>
-        <div class="form-section"><div class="section-label"><h3>Logistics</h3><span>Place, materials, money</span></div><div class="field-grid two"><label class="field"><span>Venue</span><input name="venue" /></label><label class="field"><span>Materials required</span><input name="materials" placeholder="Comma separated" /></label></div><div class="field-grid two"><label class="field"><span>Planned budget</span><input name="budgetPlanned" type="number" min="0" /></label><label class="field"><span>Actual spent</span><input name="budgetActual" type="number" min="0" /></label></div></div>
-        <div class="form-section"><div class="section-label"><h3>Progress</h3><span>Workflow</span></div><div class="field-grid two"><label class="field"><span>Status</span><select name="status"></select></label><label class="field"><span>Deadline</span><input name="deadline" type="date" /></label></div><div class="field-grid three"><label class="field"><span>Approval required</span><select name="approvalRequired"><option value="false">No</option><option value="true">Yes</option></select></label><label class="field"><span>Approval status</span><select name="approvalStatus"><option>Not required</option><option>Not submitted</option><option>Awaiting approval</option><option>Approved</option><option>Rejected</option></select></label><label class="field"><span>Approver</span><input name="approver" /></label></div></div>
-        <div class="form-section"><div class="section-label"><h3>Planning logic</h3><span>Connections + contingencies</span></div><label class="field full"><span>Dependencies</span><input name="dependencies" placeholder="Comma separated event names" /></label><label class="field full"><span>Backup plan</span><textarea name="backupPlan" rows="3"></textarea></label></div>
-        <div class="form-section"><div class="section-label"><h3>After the event</h3><span>Review</span></div><label class="field full"><span>Post-event feedback</span><textarea name="feedback" rows="4"></textarea></label></div>
-        <div class="drawer-actions"><button type="button" class="button danger ghost" id="deleteEventButton">Delete</button><div class="spacer"></div><button type="button" class="button secondary" data-close-drawer>Cancel</button><button type="submit" class="button primary">Save event</button></div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>People</h3><span>Ownership</span></div>
+          <div class="field-grid two">
+            <label class="field"><span>Person responsible</span><input name="lead" /></label>
+            <label class="field"><span>Supporting members</span><input name="supporting" placeholder="Comma separated" /></label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>Logistics</h3><span>Place, materials, money</span></div>
+          <div class="field-grid two">
+            <label class="field"><span>Venue</span><input name="venue" placeholder="Auditorium, Gym…" /></label>
+            <label class="field"><span>Map address</span><input name="venueAddress" placeholder="Full address for Google Maps" /></label>
+          </div>
+          <label class="field full"><span>Materials required</span><input name="materials" placeholder="Comma separated" /></label>
+          <div class="field-grid two">
+            <label class="field"><span>Planned budget</span><input name="budgetPlanned" type="number" min="0" /></label>
+            <label class="field"><span>Actual spent</span><input name="budgetActual" type="number" min="0" /></label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>Progress</h3><span>Workflow</span></div>
+          <div class="field-grid two">
+            <label class="field"><span>Status</span><select name="status"></select></label>
+            <label class="field"><span>Deadline</span><input name="deadline" type="date" /></label>
+          </div>
+          <div class="field-grid three">
+            <label class="field"><span>Approval required</span><select name="approvalRequired"><option value="false">No</option><option value="true">Yes</option></select></label>
+            <label class="field"><span>Approval status</span><select name="approvalStatus"><option>Not required</option><option>Not submitted</option><option>Awaiting approval</option><option>Approved</option><option>Rejected</option></select></label>
+            <label class="field"><span>Approver</span><input name="approver" /></label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>Planning logic</h3><span>Connections + contingencies</span></div>
+          <label class="field full"><span>Dependencies</span><input name="dependencies" placeholder="Comma separated event names" /></label>
+          <label class="field full"><span>Backup plan</span><textarea name="backupPlan" rows="3"></textarea></label>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label"><h3>After the event</h3><span>Review</span></div>
+          <label class="field full"><span>Post-event feedback</span><textarea name="feedback" rows="4"></textarea></label>
+        </div>
+
+        <div class="drawer-actions">
+          <button type="button" class="button danger ghost" id="deleteEventButton">Delete</button>
+          <div class="spacer"></div>
+          <button type="button" class="button secondary" data-close-drawer>Cancel</button>
+          <button type="submit" class="button primary">Save event</button>
+        </div>
       </form>
     </section>
   </aside>
 
   <div id="shareModal" class="modal" aria-hidden="true">
     <div class="modal-backdrop" data-close-share></div>
-    <section class="modal-card share-card">
-      <div class="modal-header"><div><div class="eyebrow">Live workspace</div><h2>Collaborate on this board</h2><p>Share one link. Everyone on it sees blocks, edits and cursors live.</p></div><button class="icon-button" data-close-share>×</button></div>
+    <section class="modal-card share-card" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div><div class="eyebrow">Live workspace</div><h2>Collaborate on this board</h2><p>Share one link. Everyone sees pages, cursors, selections, edits and moves live.</p></div>
+        <button class="icon-button" data-close-share>×</button>
+      </div>
       <div class="share-state" id="shareState"></div>
       <div class="share-link-row"><input id="shareLink" readonly /><button class="button primary" id="copyShareLink">Copy link</button></div>
-      <div class="name-row"><label class="field"><span>Your display name</span><input id="displayName" maxlength="24" placeholder="Your name" /></label></div>
+      <div class="name-row"><label class="field"><span>Your display name</span><input id="displayName" maxlength="40" placeholder="Your name" /></label></div>
       <div class="share-actions"><button class="button secondary" id="newSharedBoard">New empty shared board</button><button class="button secondary" id="leaveSharedBoard">Leave shared board</button></div>
-      <div class="share-note">Live collaboration uses the board link as the room key. Keep the link within your council.</div>
+      <div class="share-note">Google sign-in gives collaborators a stable name/avatar. Guests can still use a shared room while Google OAuth is being configured.</div>
+    </section>
+  </div>
+
+  <div id="accountModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-account></div>
+    <section class="modal-card account-card" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div><div class="eyebrow">Account</div><h2>Google account</h2><p>Use Google identity for collaboration presence and attribution.</p></div>
+        <button class="icon-button" data-close-account>×</button>
+      </div>
+      <div id="accountState" class="account-state"></div>
+      <div class="modal-actions split">
+        <button class="button secondary" id="signOutButton">Sign out</button>
+        <button class="button google-button" id="signInGoogleButton"><span class="google-g">G</span> Continue with Google</button>
+      </div>
+      <div class="setup-note" id="authSetupNote"></div>
+    </section>
+  </div>
+
+  <div id="mapsSetupModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-maps></div>
+    <section class="modal-card account-card" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div><div class="eyebrow">Venues</div><h2>Google Maps setup</h2><p>Add a browser-restricted Maps JavaScript API key.</p></div>
+        <button class="icon-button" data-close-maps>×</button>
+      </div>
+      <div class="name-row">
+        <label class="field"><span>Maps API key</span><input id="mapsApiKeyInput" type="password" autocomplete="off" placeholder="AIza…" /></label>
+      </div>
+      <div class="setup-note">This is a browser API key, not a secret credential. Restrict it in Google Cloud to the Maps JavaScript API and your GitHub Pages HTTP referrer.</div>
+      <div class="modal-actions split"><button class="button danger ghost" id="clearMapsKey">Clear key</button><button class="button primary" id="saveMapsKey">Save on this browser</button></div>
     </section>
   </div>
 
   <div id="importModal" class="modal" aria-hidden="true">
     <div class="modal-backdrop" data-close-import></div>
-    <section class="modal-card"><div class="modal-header"><div><div class="eyebrow">Calendar import</div><h2>Import events</h2><p>Supports .ics / .ical and JSON.</p></div><button class="icon-button" data-close-import>×</button></div><label class="drop-zone" id="dropZone"><input id="calendarFile" type="file" accept=".ics,.ical,.json" hidden /><span class="drop-icon">↥</span><strong>Choose or drop a calendar file</strong><small>Review before importing</small></label><div id="importPreview" class="import-preview"></div><div class="modal-actions"><button class="button secondary" data-close-import>Cancel</button><button class="button primary" id="confirmImportButton" disabled>Import selected</button></div></section>
+    <section class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-header"><div><div class="eyebrow">Calendar import</div><h2>Import events</h2><p>Supports .ics / .ical and JSON.</p></div><button class="icon-button" data-close-import>×</button></div>
+      <label class="drop-zone" id="dropZone"><input id="calendarFile" type="file" accept=".ics,.ical,.json" hidden /><span class="drop-icon">↥</span><strong>Choose or drop a calendar file</strong><small>Review before importing</small></label>
+      <div id="importPreview" class="import-preview"></div>
+      <div class="modal-actions"><button class="button secondary" data-close-import>Cancel</button><button class="button primary" id="confirmImportButton" disabled>Import selected</button></div>
+    </section>
   </div>
 
   <div id="cursorLayer" class="cursor-layer"></div>
-  <div id="toastRegion" class="toast-region"></div>
-  <script src="app.js"></script>
+  <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
