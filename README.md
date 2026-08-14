@@ -1,44 +1,94 @@
 # MSC Event Management
 
-Frontend-first event planning for a Middle School Council. The app keeps the everyday views compact while every event can still hold the full MSC planning record.
+Frontend-first event planning for a Middle School Council, with a large visual planning canvas, calendar import, venue/budget tools and live shared-board collaboration.
 
 ## Current frontend
 
-- Black minimal UI built for desktop first, with responsive mobile navigation
-- Visual **Plan** canvas with draggable event blocks
-- Two-axis scrolling and background drag-to-pan
-- Shift + mouse wheel for horizontal scrolling
-- Ctrl/Cmd + wheel and toolbar controls for zoom
-- Double-click anywhere on the canvas to create an event block in place
-- Dependency lines between event blocks when a dependency matches another event name
-- Event detail drawer for objective, people, venue, materials, budget, approval, deadline, dependencies, backup plan and feedback
+- Black minimal responsive UI that scales up on 1440p / 4K screens
+- Visual **Plan** canvas with a 4600 × 3200 workspace
+- Smooth `requestAnimationFrame` block dragging with lightweight realtime drag packets
+- Space + drag or empty-canvas drag to pan
+- Trackpad / two-axis scrolling
+- Shift + wheel horizontal scroll
+- Ctrl/Cmd + wheel zooms around the pointer position
+- Double-click empty canvas to add a block
+- Double-click a block to open its full event record
+- Dependency connectors between events
+- Color-coded approval states: Approved, Awaiting approval, Rejected, Not submitted, Not required
 - Status flow: **Not started → Planning → Awaiting approval → Ready → Completed**
-- Drag-and-drop status board
-- Dense events table and filters
-- Month calendar
-- Venue usage and venue-conflict detection
-- Imported-school-calendar overlap warnings
-- Budget overview with editable annual budget
-- `.ics` / `.ical` import with review before saving
-- JSON calendar import with review before saving
-- Duplicate import protection
+- Status board, calendar, venue manager and budget view
+- `.ics` / `.ical` and JSON imports
 - JSON export
-- Local persistence through `localStorage`
+- Local browser persistence
 
-## Planner controls
+## Live collaboration
 
-- **Drag a block handle** to move the block
-- **Drag empty canvas space** to pan
-- **Scroll / trackpad** for normal two-axis navigation
-- **Shift + wheel** to force horizontal scroll with a mouse
-- **Ctrl/Cmd + wheel** to zoom around the center of the viewport
-- **Double-click empty canvas** to create an event block at that location
-- **N** creates a new event (quick block on the Plan view)
-- **/** focuses global search
+Shared boards use Supabase Realtime.
+
+- Presence avatars
+- Current page/view for each collaborator
+- Current selected event
+- Editing / moving / selected indicators
+- Canva-style badges on blocks when another person is working on the same event
+- Live cursors
+- Live block movement
+- Shared event/state updates
+- Google account name/avatar used automatically after login
+- Guest names still work if Google OAuth has not been configured yet
+
+Presence is used only for slower-changing collaborator state. Cursor and drag movement use Realtime Broadcast so mouse movement does not flood Presence.
+
+## Google sign-in setup
+
+The frontend already calls Supabase Auth with `provider: 'google'`. **No Google client secret is stored in this repository.**
+
+1. In Google Auth Platform, create a **Web application** OAuth client.
+2. Add this authorized JavaScript origin:
+
+   `https://daytondeltap.github.io`
+
+3. Add the Supabase callback URL as an authorized redirect URI:
+
+   `https://pmfsgdraazaaulgwlant.supabase.co/auth/v1/callback`
+
+4. In Supabase Dashboard → Authentication → Providers → Google, enable Google and paste the **Client ID** and **Client Secret**.
+5. In Supabase Dashboard → Authentication → URL Configuration, add the GitHub Pages application URL / redirect allow-list entry:
+
+   `https://daytondeltap.github.io/msc-event-management/`
+
+Once those settings are saved, the existing **Continue with Google** button works without another frontend code change.
+
+## Google Maps setup
+
+The Venues page uses the Google Maps JavaScript API and geocodes each event's **Map address** field.
+
+1. In Google Cloud, enable **Maps JavaScript API** and billing.
+2. Create a browser API key.
+3. Restrict the key to the Maps JavaScript API.
+4. Add an HTTP referrer restriction for:
+
+   `https://daytondeltap.github.io/msc-event-management/*`
+
+5. Either:
+   - open **Venues → Configure Google Maps** and paste the key for that browser, or
+   - put the key in `config.js` as `googleMapsApiKey` if you want the deployed site to use the same browser key for everyone.
+
+A Maps browser key is visible to the browser by design, so the important protection is the API + HTTP-referrer restriction. **Do not put OAuth client secrets or Supabase service-role keys in `config.js`.**
+
+## Frontend structure
+
+The static app is split into small classic-script modules so it remains easy to deploy on GitHub Pages without a build system:
+
+- `app-core.js` — data model, state, common rendering helpers
+- `app-views.js` — Plan, Events, Status, Calendar, Venues and Budget UI
+- `app-online.js` — Supabase Auth + Realtime Presence/Broadcast
+- `app-integrations.js` — smooth block dragging, Maps, iCal/JSON import/export
+- `app-bind.js` — pointer, keyboard, button and drag/drop bindings
+- `config.js` — optional public/browser integration settings only
 
 ## Run locally
 
-This is a static frontend with no build step.
+No build step is required.
 
 ```bash
 python -m http.server 8000
@@ -46,30 +96,6 @@ python -m http.server 8000
 
 Then open `http://localhost:8000`.
 
-## JSON import
-
-The importer accepts either a plain array or an object containing `events` or `items`.
-
-```json
-{
-  "events": [
-    {
-      "title": "School Assembly",
-      "start": "2026-09-04T09:00:00+07:00",
-      "end": "2026-09-04T10:00:00+07:00",
-      "location": "Auditorium",
-      "description": "Monthly middle school assembly"
-    }
-  ]
-}
-```
-
-Common MSC-specific fields such as `lead`, `supportingMembers`, `materialsRequired`, `budget`, `deadline`, `approvalRequired`, `dependencies`, `backupPlan`, and `postEventFeedback` are also recognized.
-
 ## GitHub Pages
 
-`.github/workflows/pages.yml` deploys the static frontend whenever `main` changes. For a brand-new repository, enable **Settings → Pages → Source → GitHub Actions** once. Subsequent commits deploy automatically.
-
-## Later backend / collaboration
-
-The event state is intentionally plain JSON. A later backend can replace local persistence with workspaces, authentication, live collaboration, comments, version history, shared approvals and server-side PDF/calendar parsing without rebuilding the frontend model.
+`.github/workflows/pages.yml` deploys the static frontend whenever `main` changes.
