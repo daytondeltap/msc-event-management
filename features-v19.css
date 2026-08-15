@@ -1,0 +1,36 @@
+/* MSC v19: scaled Asadal + email recipient/API settings */
+html[data-theme="aero"] #mscAeroWallpaperLayer{
+  inset:-8px!important;
+  width:calc(100vw + 16px)!important;
+  height:calc(100vh + 16px)!important;
+  background:#2686cf!important;
+  overflow:hidden!important;
+}
+html[data-theme="aero"] #mscAeroWallpaperLayer #mscAeroAsadalImage{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+  transform:scale(1.012)!important;
+  filter:blur(1.15px)!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+}
+#v19PresetForm select[name="recipientTarget"]{min-width:0;width:100%}
+#v19PresetForm .v17-check{align-self:end}
+.v19-email-api{display:grid;gap:12px}
+.v19-email-api-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.v19-email-api-grid .full{grid-column:1/-1}
+.v19-email-api-grid .field small{font-size:.54rem;line-height:1.45;margin-top:5px;color:#777}
+.v19-email-actions{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.v19-email-status{margin-right:auto;font-size:.58rem;color:#777}
+.v19-email-api-empty{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid #282828;border-radius:10px;background:#0b0b0b}
+.v19-email-api-empty strong{font-size:.67rem}.v19-email-api-empty small{font-size:.56rem;color:#777;line-height:1.45}
+.v19-email-error{padding:9px 11px;border:1px solid #6b3030;background:#2b1111;border-radius:9px;font-size:.58rem;color:#ffaaaa}
+html[data-theme="aero"] .v19-email-api-grid .field small,
+html[data-theme="aero"] .v19-email-status,
+html[data-theme="aero"] .v19-email-api-empty small{color:#2589bd!important}
+html[data-theme="aero"] .v19-email-api-empty{background:rgba(248,254,255,.94)!important;border-color:#76bfe0!important}
+html[data-theme="aero"] .v19-email-api-empty strong{color:#0879b7!important}
+html[data-theme="aero"] .v19-email-error{background:#fff0f0!important;border-color:#e78b8b!important;color:#d34b4b!important}
+@media(max-width:760px){.v19-email-api-grid{grid-template-columns:1fr}.v19-email-api-grid .full{grid-column:auto}.v19-email-actions{flex-wrap:wrap}.v19-email-status{width:100%;margin:0}}
