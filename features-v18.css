@@ -15,7 +15,6 @@ html[data-theme="aero"] #mscAeroWallpaperLayer{
   opacity:1!important;
   visibility:visible!important;
 }
-html[data-theme="aero"] #mscAeroWallpaperLayer[hidden]{display:flex!important}
 html[data-theme="aero"] #mscAeroWallpaperLayer #mscAeroAsadalImage{
   display:block!important;
   width:100vw!important;
