@@ -7,7 +7,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
 
 // Progressive enhancement layers. Core planner/calendar/local mode remain usable if a CDN fails.
 (() => {
-  const BUILD = '20260815-2245-v20b';
+  const BUILD = '20260815-2308-v21';
   const addStyle = (href) => {
     if ([...document.styleSheets].some(s => s.href && s.href.includes(href.split('?')[0]))) return;
     const link = document.createElement('link');
@@ -43,22 +43,16 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
   addStyle(`features-v18.css?v=${BUILD}`);
   addStyle(`features-v19.css?v=${BUILD}`);
   addStyle(`features-v20.css?v=${BUILD}`);
+  addStyle(`features-v21.css?v=${BUILD}`);
   addStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
   const boot = async () => {
     try { await loadScript('app-polish.js'); } catch (err) { console.warn('MSC polish layer unavailable', err); }
-    try {
-      await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-      await loadScript('app-osm.js');
-    } catch (err) {
-      console.warn('OpenStreetMap layer unavailable', err);
-    }
     // Input guards must load before v8/v9 so legacy prompt/menu handlers never win the event race.
     try { await loadScript('app-v12-connections.js'); } catch (err) { console.warn('MSC v12 connection controller unavailable', err); }
     try { await loadScript(`app-v20-node-guard.js?v=${BUILD}`); } catch (err) { console.warn('MSC v20 node editor guard unavailable', err); }
     try { await loadScript('app-v8-plan.js'); } catch (err) { console.warn('MSC v8 plan layer unavailable', err); }
     try { await loadScript('app-v8-contacts.js'); } catch (err) { console.warn('MSC v8 contacts layer unavailable', err); }
-    try { await loadScript('app-v8-osm-search.js'); } catch (err) { console.warn('MSC v8 OSM search layer unavailable', err); }
     try { await loadScript('app-v8-pdf.js'); } catch (err) { console.warn('MSC v8 PDF import layer unavailable', err); }
     try { await loadScript('app-v9-plan.js'); } catch (err) { console.warn('MSC v9 graph layer unavailable', err); }
     try { await loadScript('app-v9-persistence.js'); } catch (err) { console.warn('MSC v9 persistent collaboration unavailable', err); }
@@ -73,6 +67,16 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
     try { await loadScript(`app-v18-bugfix.js?v=${BUILD}`); } catch (err) { console.warn('MSC v18 bugfix controller unavailable', err); }
     try { await loadScript(`app-v19-email-presets.js?v=${BUILD}`); } catch (err) { console.warn('MSC v19 email/preset layer unavailable', err); }
     try { await loadScript(`app-v20-performance.js?v=${BUILD}`); } catch (err) { console.warn('MSC v20 large-calendar layer unavailable', err); }
+    try { await loadScript(`app-v21-plan-guard.js?v=${BUILD}`); } catch (err) { console.warn('MSC v21 planner clone guard unavailable', err); }
+    try { await loadScript(`app-v21-large-import.js?v=${BUILD}`); } catch (err) { console.warn('MSC v21 bulk import layer unavailable', err); }
+    // Maps are deliberately non-critical: never block planner startup on a CDN.
+    try {
+      await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+      await loadScript('app-osm.js');
+      await loadScript('app-v8-osm-search.js');
+    } catch (err) {
+      console.warn('OpenStreetMap layer unavailable', err);
+    }
   };
 
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', boot, { once: true });
