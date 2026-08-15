@@ -7,7 +7,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
 
 // Progressive enhancement layers. Core planner/calendar/local mode remain usable if a CDN fails.
 (() => {
-  const BUILD = '20260815-2308-v21';
+  const BUILD = '20260815-2322-v22';
   const addStyle = (href) => {
     if ([...document.styleSheets].some(s => s.href && s.href.includes(href.split('?')[0]))) return;
     const link = document.createElement('link');
@@ -16,16 +16,29 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
     document.head.appendChild(link);
   };
 
-  const loadScript = (src) => new Promise((resolve, reject) => {
+  const loadScript = (src, timeoutMs = 5000) => new Promise((resolve, reject) => {
     const absolute = new URL(src, location.href).href;
     const existing = [...document.scripts].find(s => s.src === absolute);
     if (existing?.dataset.loaded === 'true') return resolve();
+    let settled = false;
+    const finish = (ok, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      ok ? resolve(value) : reject(value);
+    };
+    const timer = setTimeout(() => finish(false, new Error(`Timed out loading ${src}`)), timeoutMs);
     const script = existing || document.createElement('script');
     script.src = src;
     script.async = false;
-    script.onload = () => { script.dataset.loaded = 'true'; resolve(); };
-    script.onerror = reject;
+    script.onload = () => { script.dataset.loaded = 'true'; finish(true); };
+    script.onerror = () => finish(false, new Error(`Failed to load ${src}`));
     if (!existing) document.body.appendChild(script);
+    else if (existing.dataset.loaded !== 'true') {
+      // A statically loaded script has already executed by the time config sees it.
+      if (!existing.hasAttribute('data-msc-dynamic')) finish(true);
+    }
+    if (!existing) script.setAttribute('data-msc-dynamic','1');
   });
 
   addStyle('features-v7.css');
@@ -69,14 +82,18 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
     try { await loadScript(`app-v20-performance.js?v=${BUILD}`); } catch (err) { console.warn('MSC v20 large-calendar layer unavailable', err); }
     try { await loadScript(`app-v21-plan-guard.js?v=${BUILD}`); } catch (err) { console.warn('MSC v21 planner clone guard unavailable', err); }
     try { await loadScript(`app-v21-large-import.js?v=${BUILD}`); } catch (err) { console.warn('MSC v21 bulk import layer unavailable', err); }
-    // Maps are deliberately non-critical: never block planner startup on a CDN.
-    try {
-      await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-      await loadScript('app-osm.js');
-      await loadScript('app-v8-osm-search.js');
-    } catch (err) {
-      console.warn('OpenStreetMap layer unavailable', err);
-    }
+    // The workspace is usable before maps. Never keep startup waiting on a third-party CDN.
+    window.MSC_FAST_BOOT = Object.assign(window.MSC_FAST_BOOT || {}, { ready: true });
+    window.dispatchEvent(new Event('msc:enhancements-ready'));
+    setTimeout(async () => {
+      try {
+        await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', 6500);
+        await loadScript('app-osm.js');
+        await loadScript('app-v8-osm-search.js');
+      } catch (err) {
+        console.warn('OpenStreetMap layer unavailable', err);
+      }
+    }, 40);
   };
 
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', boot, { once: true });
