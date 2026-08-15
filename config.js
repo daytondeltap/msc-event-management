@@ -7,7 +7,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
 
 // Progressive enhancement layers. Core planner/calendar/local mode remain usable if a CDN fails.
 (() => {
-  const BUILD = '20260815-1822-v17';
+  const BUILD = '20260815-1912-v18';
   const addStyle = (href) => {
     if ([...document.styleSheets].some(s => s.href && s.href.includes(href.split('?')[0]))) return;
     const link = document.createElement('link');
@@ -40,6 +40,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
   addStyle(`features-v15.css?v=${BUILD}`);
   addStyle(`features-v16.css?v=${BUILD}`);
   addStyle(`features-v17.css?v=${BUILD}`);
+  addStyle(`features-v18.css?v=${BUILD}`);
   addStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
   const boot = async () => {
@@ -66,6 +67,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
     try { await loadScript(`app-v16-aero.js?v=${BUILD}`); } catch (err) { console.warn('MSC v16 deterministic Aero fixes unavailable', err); }
     try { await loadScript(`app-v17-aero-contacts.js?v=${BUILD}`); } catch (err) { console.warn('MSC v17 Aero/contacts/email presets unavailable', err); }
     try { await loadScript(`app-v17-audio-cleanup.js?v=${BUILD}`); } catch (err) { console.warn('MSC v17 soundtrack cleanup unavailable', err); }
+    try { await loadScript(`app-v18-bugfix.js?v=${BUILD}`); } catch (err) { console.warn('MSC v18 bugfix controller unavailable', err); }
   };
 
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', boot, { once: true });
