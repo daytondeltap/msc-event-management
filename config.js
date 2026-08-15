@@ -7,7 +7,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
 
 // Progressive enhancement layers. Core planner/calendar/local mode remain usable if a CDN fails.
 (() => {
-  const BUILD = '20260815-2010-v20';
+  const BUILD = '20260815-2245-v20b';
   const addStyle = (href) => {
     if ([...document.styleSheets].some(s => s.href && s.href.includes(href.split('?')[0]))) return;
     const link = document.createElement('link');
@@ -53,8 +53,9 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
     } catch (err) {
       console.warn('OpenStreetMap layer unavailable', err);
     }
-    // This must load before v8/v9 so it can own connection clicks before legacy prompt/drag handlers.
+    // Input guards must load before v8/v9 so legacy prompt/menu handlers never win the event race.
     try { await loadScript('app-v12-connections.js'); } catch (err) { console.warn('MSC v12 connection controller unavailable', err); }
+    try { await loadScript(`app-v20-node-guard.js?v=${BUILD}`); } catch (err) { console.warn('MSC v20 node editor guard unavailable', err); }
     try { await loadScript('app-v8-plan.js'); } catch (err) { console.warn('MSC v8 plan layer unavailable', err); }
     try { await loadScript('app-v8-contacts.js'); } catch (err) { console.warn('MSC v8 contacts layer unavailable', err); }
     try { await loadScript('app-v8-osm-search.js'); } catch (err) { console.warn('MSC v8 OSM search layer unavailable', err); }
