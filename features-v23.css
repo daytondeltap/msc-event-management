@@ -1,0 +1,12 @@
+/* MSC v23 page kernel */
+.v23-render-count{font-size:.55rem;color:#6f7784;white-space:nowrap;padding:0 4px}
+.v23-page-controls{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 0 2px;border-top:1px solid #222;margin-top:10px}.v23-page-controls span{font-size:.6rem;color:#777}
+.v23-virtual-plan .planner-world{contain:layout style paint}.v23-virtual-plan #v23PlanCards{display:contents}
+body.v23-large-board .event-block{contain:layout style paint;will-change:auto}
+body.v23-large-board .planner-world{backface-visibility:hidden}
+body.v23-large-board .connection-line{vector-effect:non-scaling-stroke}
+html[data-theme="light"] .v23-render-count,html[data-theme="light"] .v23-page-controls span{color:#667181}
+html[data-theme="light"] .v23-page-controls{border-top-color:#dce2e9}
+html[data-theme="aero"] .v23-render-count,html[data-theme="aero"] .v23-page-controls span{color:#fff!important;text-shadow:0 1px #1776aa}
+html[data-theme="aero"] .v23-page-controls{border-top-color:rgba(255,255,255,.65)}
+@media(max-width:900px){.v23-render-count{display:none}}
