@@ -1,0 +1,37 @@
+/* MSC v20: large-board rendering, month chunks, unified node controls */
+.v20-month-chunk-layer{position:absolute;inset:0;z-index:0;pointer-events:none}
+.v20-month-chunk{position:absolute;left:var(--chunk-x);top:var(--chunk-y);width:var(--chunk-w);height:var(--chunk-h);border:1px solid rgba(132,155,191,.28);border-radius:24px;background:rgba(75,97,128,.055);box-shadow:inset 0 1px rgba(255,255,255,.025);pointer-events:none}
+.v20-month-chunk-title{position:absolute;left:18px;top:14px;display:flex;align-items:baseline;gap:9px;padding:6px 9px;border:1px solid #2b3039;border-radius:9px;background:rgba(8,10,14,.88);box-shadow:0 7px 22px rgba(0,0,0,.24)}
+.v20-month-chunk-title strong{font-size:12px;color:#e8edf5;letter-spacing:.01em}.v20-month-chunk-title span{font-size:10px;color:#788394}
+.planner-world>.connections{z-index:1}.planner-world>.event-block{z-index:2}
+
+/* One node editor only. Hide/remove the legacy v8 editor and keep the compact v9 toolbar. */
+.connection-popover{display:none!important}
+.v9-node-toolbar{width:min(610px,calc(100vw - 24px));padding:12px}
+.v9-node-toolbar-row.v20-node-toolbar-row{grid-template-columns:minmax(190px,1fr) repeat(3,auto)!important}
+.v20-node-toolbar-row input{height:36px!important}.v20-node-toolbar-row button{height:36px!important;white-space:nowrap}
+
+.v20-plan-settings{display:grid;gap:12px}
+.v20-settings-grid{display:grid;gap:7px}
+.v20-setting-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;padding:10px 12px;border:1px solid #252525;border-radius:10px;background:#0b0b0b}
+.v20-setting-row>span{display:flex;flex-direction:column;gap:3px}.v20-setting-row strong{font-size:.65rem}.v20-setting-row small{font-size:.54rem;color:#777;line-height:1.4}
+.v20-setting-row select{min-width:150px}.v20-setting-row input[type="checkbox"]{width:18px;height:18px}
+.v20-settings-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px}.v20-settings-actions>span{margin-right:auto;font-size:.56rem;color:#707070}
+
+/* Let the browser skip paint/layout work for offscreen large-board cards while keeping the full spatial plan. */
+body.v20-large-board .event-block{content-visibility:auto;contain:layout style paint;contain-intrinsic-size:385px 178px}
+body.v20-large-board .board-card,body.v20-large-board .venue-row{content-visibility:auto;contain-intrinsic-size:auto 72px}
+body.v20-large-board .event-block:not(.moving){will-change:auto}
+body.v20-large-board .collab-badge{backdrop-filter:none}
+
+html[data-theme="light"] .v20-month-chunk{border-color:rgba(68,94,130,.22);background:rgba(92,126,170,.055)}
+html[data-theme="light"] .v20-month-chunk-title{background:rgba(255,255,255,.94);border-color:#d7dde6;box-shadow:0 6px 18px rgba(45,58,74,.1)}
+html[data-theme="light"] .v20-month-chunk-title strong{color:#263445}html[data-theme="light"] .v20-month-chunk-title span{color:#718096}
+html[data-theme="light"] .v20-setting-row{background:#fff;border-color:#dce1e7}html[data-theme="light"] .v20-setting-row small,html[data-theme="light"] .v20-settings-actions>span{color:#697381}
+
+html[data-theme="aero"] .v20-month-chunk{border:2px solid rgba(255,255,255,.78)!important;outline:1px solid rgba(31,132,190,.60);background:rgba(203,241,255,.22)!important;box-shadow:inset 0 1px rgba(255,255,255,.92),0 8px 24px rgba(0,100,160,.12)!important}
+html[data-theme="aero"] .v20-month-chunk-title{background:linear-gradient(#72c9f4,#288fca 49%,#1979b5 52%,#58b7e6)!important;border-color:#1470a7!important;box-shadow:inset 0 1px rgba(255,255,255,.75),0 5px 13px rgba(0,71,122,.25)!important}
+html[data-theme="aero"] .v20-month-chunk-title strong,html[data-theme="aero"] .v20-month-chunk-title span{color:#fff!important;text-shadow:0 1px #17628d}
+html[data-theme="aero"] .v20-setting-row{background:linear-gradient(#fff,#e5f7ff)!important;border-color:#7bc2df!important}html[data-theme="aero"] .v20-setting-row strong{color:#0783c2!important}html[data-theme="aero"] .v20-setting-row small,html[data-theme="aero"] .v20-settings-actions>span{color:#2c92be!important}
+
+@media(max-width:1080px){.v20-node-toolbar-row{grid-template-columns:1fr 1fr!important}.v20-node-toolbar-row input{grid-column:1/-1}.v20-setting-row{grid-template-columns:1fr}.v20-setting-row select{width:100%}}
