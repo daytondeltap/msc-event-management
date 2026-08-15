@@ -27,6 +27,7 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
   addStyle('features-v9.css');
   addStyle('features-v10.css');
   addStyle('features-v11.css');
+  addStyle('features-v12.css');
   addStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
   const boot = async () => {
@@ -37,6 +38,8 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
     } catch (err) {
       console.warn('OpenStreetMap layer unavailable', err);
     }
+    // This must load before v8/v9 so it can own connection clicks before legacy prompt/drag handlers.
+    try { await loadScript('app-v12-connections.js'); } catch (err) { console.warn('MSC v12 connection controller unavailable', err); }
     try { await loadScript('app-v8-plan.js'); } catch (err) { console.warn('MSC v8 plan layer unavailable', err); }
     try { await loadScript('app-v8-contacts.js'); } catch (err) { console.warn('MSC v8 contacts layer unavailable', err); }
     try { await loadScript('app-v8-osm-search.js'); } catch (err) { console.warn('MSC v8 OSM search layer unavailable', err); }
