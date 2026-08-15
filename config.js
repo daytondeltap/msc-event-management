@@ -26,10 +26,10 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus
       const finish=(ok,error)=>{if(done)return;done=true;clearTimeout(timer);ok?resolve():reject(error)};
       const timer=setTimeout(()=>finish(false,new Error(`timeout:${src}`)),timeout);
       const s=found||document.createElement('script');
-      if(!found){s.src=src;s.async=false;s.dataset.mscDynamic='1';document.body.appendChild(s)}
       s.addEventListener('load',()=>{s.dataset.loaded='1';finish(true)},{once:true});
       s.addEventListener('error',()=>finish(false,new Error(`load:${src}`)),{once:true});
-      if(found&&!found.dataset.mscDynamic)finish(true);
+      if(!found){s.src=src;s.async=false;s.dataset.mscDynamic='1';document.body.appendChild(s)}
+      else if(!found.dataset.mscDynamic)finish(true);
     });
   }
   const pause=()=>new Promise(r=>requestAnimationFrame(()=>r()));
