@@ -26,6 +26,7 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
   addStyle('features-v8.css');
   addStyle('features-v9.css');
   addStyle('features-v10.css');
+  addStyle('features-v11.css');
   addStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
   const boot = async () => {
@@ -43,6 +44,7 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
     try { await loadScript('app-v9-plan.js'); } catch (err) { console.warn('MSC v9 graph layer unavailable', err); }
     try { await loadScript('app-v9-persistence.js'); } catch (err) { console.warn('MSC v9 persistent collaboration unavailable', err); }
     try { await loadScript('app-v10-boards.js'); } catch (err) { console.warn('MSC v10 boards workspace unavailable', err); }
+    try { await loadScript('app-v11-sharing.js'); } catch (err) { console.warn('MSC v11 sharing layer unavailable', err); }
   };
 
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', boot, { once: true });
