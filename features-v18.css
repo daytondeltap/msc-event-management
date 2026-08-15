@@ -1,0 +1,50 @@
+/* MSC v18: deterministic Aero wallpaper and contact-form safety */
+#mscAeroWallpaperLayer{display:none}
+html[data-theme="aero"] #mscAeroWallpaperLayer{
+  position:fixed!important;
+  inset:0!important;
+  z-index:10!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100vw!important;
+  height:100vh!important;
+  overflow:hidden!important;
+  pointer-events:none!important;
+  background:#2686cf!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+html[data-theme="aero"] #mscAeroWallpaperLayer[hidden]{display:flex!important}
+html[data-theme="aero"] #mscAeroWallpaperLayer #mscAeroAsadalImage{
+  display:block!important;
+  width:100vw!important;
+  height:100vh!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+  mix-blend-mode:normal!important;
+}
+html[data-theme="aero"] .app-shell{position:relative!important;z-index:20!important;background:transparent!important}
+html[data-theme="aero"] .main-shell{background:transparent!important}
+html[data-theme="aero"] .view,
+html[data-theme="aero"] .content,
+html[data-theme="aero"] .boards-view,
+html[data-theme="aero"] .calendar-shell,
+html[data-theme="aero"] .venue-shell,
+html[data-theme="aero"] .budget-shell,
+html[data-theme="aero"] .events-shell,
+html[data-theme="aero"] .planner-viewport{background:transparent!important}
+html[data-theme="aero"] .planner-world{
+  background-color:rgba(232,249,255,.30)!important;
+  background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.42) 1px,transparent 1.2px)!important;
+  backdrop-filter:blur(2px)!important;
+}
+html[data-theme="aero"] .boards-shell{background:rgba(247,253,255,.68)!important}
+
+#v18ContactForm #v18SaveContact{cursor:pointer}
+#v18ContactForm[data-v18-bound="1"]{contain:layout style}
