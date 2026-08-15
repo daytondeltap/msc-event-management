@@ -30,6 +30,7 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
   addStyle('features-v12.css');
   addStyle('features-v13.css');
   addStyle('features-v14.css');
+  addStyle('features-v15.css');
   addStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
   const boot = async () => {
@@ -52,6 +53,7 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
     try { await loadScript('app-v11-sharing-fixed.js'); } catch (err) { console.warn('MSC v11 sharing layer unavailable', err); }
     try { await loadScript('app-v13-settings.js'); } catch (err) { console.warn('MSC v13 options/onboarding unavailable', err); }
     try { await loadScript('app-v14-aero.js'); } catch (err) { console.warn('MSC v14 Aero/live tutorial layer unavailable', err); }
+    try { await loadScript('app-v15-aero.js'); } catch (err) { console.warn('MSC v15 Aero contrast/media fixes unavailable', err); }
   };
 
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', boot, { once: true });
