@@ -32,10 +32,9 @@
       layer.appendChild(img);
     }
 
-    const src = new URL('assets/asadal.jpg?v=20260815-v18', document.baseURI).href;
+    const src = new URL('assets/asadal.jpg?v=20260815-v18b', document.baseURI).href;
     if (img.src !== src) img.src = src;
     layer.classList.toggle('show', isAero());
-    layer.hidden = !isAero();
     document.body.classList.toggle('msc-aero-active', isAero());
   }
 
@@ -104,9 +103,20 @@
     else state.contacts.push(item);
 
     save(true);
-    renderContactRows();
     refreshRoleSelects();
-    clearContactEditor(form);
+
+    const clearButton = q('#v17ClearContact');
+    if (clearButton) {
+      clearButton.click();
+      queueMicrotask(() => {
+        renderContactRows();
+        refreshRoleSelects();
+        patchContactForm();
+      });
+    } else {
+      renderContactRows();
+      clearContactEditor(form);
+    }
     toast('Contact saved');
   }
 
