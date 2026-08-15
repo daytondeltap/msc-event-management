@@ -7,7 +7,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || {
 
 // Progressive enhancement layers. Core planner/calendar/local mode remain usable if a CDN fails.
 (() => {
-  const BUILD = '20260815-1912-v18';
+  const BUILD = '20260815-1912-v18b';
   const addStyle = (href) => {
     if ([...document.styleSheets].some(s => s.href && s.href.includes(href.split('?')[0]))) return;
     const link = document.createElement('link');
