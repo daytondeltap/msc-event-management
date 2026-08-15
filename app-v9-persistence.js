@@ -7,6 +7,8 @@
   let saving = false;
   let loadedRoom = '';
   let lastCloudSave = 0;
+  let boardAccessDenied = false;
+  let boardExistsOnline = false;
 
   function snapshotForCloud(){
     const base=cleanState();
@@ -18,12 +20,20 @@
   }
   async function cloudRequest(method,snapshot=null){
     if(!room)throw new Error('No shared board');
-    const opts={method,headers:{'Content-Type':'application/json'},cache:'no-store'};
-    let url=`${ENDPOINT}?board=${encodeURIComponent(room)}`;
-    if(method==='POST'||method==='DELETE')opts.body=JSON.stringify({boardId:room,...(snapshot?{snapshot}:{})});
+    const headers={'Content-Type':'application/json'};
+    try{
+      const {data}=await supabase?.auth?.getSession?.()||{};
+      const token=data?.session?.access_token;
+      if(token)headers.Authorization=`Bearer ${token}`;
+    }catch{}
+    const ownerKey=localStorage.getItem(`mscBoardOwnerKey:${room}`)||'';
+    if(ownerKey)headers['x-board-owner']=ownerKey;
+    const opts={method,headers,cache:'no-store'};
+    const url=`${ENDPOINT}?board=${encodeURIComponent(room)}`;
+    if(method==='POST'||method==='DELETE')opts.body=JSON.stringify({boardId:room,...(ownerKey?{ownerKey}:{}),...(snapshot?{snapshot}:{})});
     const res=await fetch(url,opts);
     let data={};try{data=await res.json();}catch{}
-    if(!res.ok)throw new Error(data.error||`Cloud board request failed (${res.status})`);
+    if(!res.ok){const err=new Error(data.error||`Cloud board request failed (${res.status})`);err.status=res.status;err.data=data;throw err;}
     return data;
   }
 
@@ -32,29 +42,36 @@
     saving=true;setCloudStatus('Saving online…');
     try{
       await cloudRequest('POST',snapshotForCloud());
-      lastCloudSave=Date.now();setCloudStatus('Saved online · anyone with the link can return anytime','ok');return true;
-    }catch(err){console.error('Persistent board save failed',err);setCloudStatus('Online save failed · live collaboration still works','warn');return false;}
-    finally{saving=false;}
+      boardExistsOnline=true;boardAccessDenied=false;lastCloudSave=Date.now();setCloudStatus('Saved online','ok');return true;
+    }catch(err){
+      console.error('Persistent board save failed',err);
+      if(err?.status===403)boardAccessDenied=true;
+      setCloudStatus('Online save failed','warn');return false;
+    } finally{saving=false;}
   }
   function schedulePersist(){
-    if(!room||!state.persistentBoard||remoteApplying)return;
+    if(!room||!state.persistentBoard||remoteApplying||boardAccessDenied)return;
     clearTimeout(saveTimer);saveTimer=setTimeout(persistNow,650);
   }
 
   async function loadPersistentBoard(force=false){
     if(!room)return false;
-    if(!force&&loadedRoom===room)return !!state.persistentBoard;
+    if(!force&&loadedRoom===room&&boardExistsOnline&&!boardAccessDenied)return true;
     loadedRoom=room;
     try{
       const data=await cloudRequest('GET');
-      if(!data.found||!data.snapshot?.events)return false;
-      const next={...data.snapshot,persistentBoard:true};
+      if(!data.found||!data.snapshot?.events){boardExistsOnline=false;boardAccessDenied=false;return false;}
+      boardExistsOnline=true;boardAccessDenied=false;
+      const next={...data.snapshot,persistentBoard:true,collaborationEnabled:!!data.shareEnabled,boardTitle:data.title||data.snapshot.boardTitle||''};
       if(typeof applyRemoteState==='function')applyRemoteState(next);
       else{remoteApplying=true;state={...state,...next};normalize();zoom=state.zoom||zoom;localStorage.setItem(storageKey(),JSON.stringify(state));render();setView(view,false);remoteApplying=false;}
       renderPersistenceControl();
-      setCloudStatus('Loaded saved board · anyone with the link can return anytime','ok');
+      setCloudStatus('Loaded saved board','ok');
       return true;
-    }catch(err){console.warn('Persistent board load unavailable',err);return false;}
+    }catch(err){
+      if(err?.status===403){boardAccessDenied=true;boardExistsOnline=true;}
+      console.warn('Persistent board load unavailable',err);return false;
+    }
   }
 
   async function enablePersistence(){
@@ -63,7 +80,7 @@
     renderPersistenceControl();
     const ok=await persistNow();
     if(!ok){state.persistentBoard=false;baseSave(false);renderPersistenceControl();toast('Could not enable online board saving');}
-    else toast('Board will stay available from this link');
+    else toast('Board will stay available online');
   }
   async function disablePersistence(){
     if(!room)return;
@@ -82,7 +99,7 @@
     if(!room){wrap.hidden=true;return;}
     wrap.hidden=false;
     const enabled=!!state.persistentBoard;
-    wrap.innerHTML=`<label class="persistent-board-switch"><span class="persistent-board-copy"><strong>Always available from this link</strong><small>${enabled?'Saved online even when everyone leaves':'Live only · the board currently relies on someone being online or a local browser copy'}</small></span><input type="checkbox" id="persistentBoardToggle" ${enabled?'checked':''}><span class="persistent-switch-ui" aria-hidden="true"></span></label><div class="persistent-board-foot"><span class="persistent-board-lock">↗ Anyone with this secret link can edit</span><span id="persistentBoardStatus" data-tone="${enabled?'ok':''}">${enabled?(lastCloudSave?'Saved online':'Online persistence enabled'):'Not saved online'}</span></div>`;
+    wrap.innerHTML=`<label class="persistent-board-switch"><span class="persistent-board-copy"><strong>Always available online</strong><small>${enabled?'Saved automatically':'Online autosave is off'}</small></span><input type="checkbox" id="persistentBoardToggle" ${enabled?'checked':''}><span class="persistent-switch-ui" aria-hidden="true"></span></label><div class="persistent-board-foot"><span class="persistent-board-lock">Board storage</span><span id="persistentBoardStatus" data-tone="${enabled?'ok':''}">${enabled?(lastCloudSave?'Saved online':'Online persistence enabled'):'Not saved online'}</span></div>`;
   }
 
   const baseCleanState=cleanState;
@@ -96,13 +113,16 @@
 
   const baseConnectRoom=connectRoom;
   connectRoom=async function(){
-    if(room)await loadPersistentBoard();
+    if(room){
+      const found=await loadPersistentBoard();
+      if(boardAccessDenied||!found){connected=false;presenceUI();return;}
+    }
     return baseConnectRoom();
   };
 
   const baseCreateShared=createShared;
   createShared=function(){
-    baseCreateShared();state.persistentBoard=false;baseSave(false);loadedRoom='';renderPersistenceControl();
+    baseCreateShared();state.persistentBoard=false;baseSave(false);loadedRoom='';boardExistsOnline=false;boardAccessDenied=false;renderPersistenceControl();
   };
 
   document.addEventListener('change',e=>{
