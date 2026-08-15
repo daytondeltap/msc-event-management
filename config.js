@@ -23,6 +23,7 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
 
   addStyle('features-v7.css');
   addStyle('features-osm.css');
+  addStyle('features-v8.css');
   addStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
   const boot = async () => {
@@ -33,6 +34,10 @@ window.MSC_CONFIG = window.MSC_CONFIG || {};
     } catch (err) {
       console.warn('OpenStreetMap layer unavailable', err);
     }
+    try { await loadScript('app-v8-plan.js'); } catch (err) { console.warn('MSC v8 plan layer unavailable', err); }
+    try { await loadScript('app-v8-contacts.js'); } catch (err) { console.warn('MSC v8 contacts layer unavailable', err); }
+    try { await loadScript('app-v8-osm-search.js'); } catch (err) { console.warn('MSC v8 OSM search layer unavailable', err); }
+    try { await loadScript('app-v8-pdf.js'); } catch (err) { console.warn('MSC v8 PDF import layer unavailable', err); }
   };
 
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', boot, { once: true });
