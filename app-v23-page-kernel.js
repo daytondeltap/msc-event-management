@@ -5,6 +5,8 @@
   const V23 = window.MSC_V23 = window.MSC_V23 || {};
   const LARGE_PLAN = 30;
   const EVENT_PAGE = 100;
+  const STATUS_PAGE = 50;
+  const BUDGET_PAGE = 100;
   const CARD_W = 360;
   const CARD_H = 178;
   const OVERSCAN = 720;
@@ -14,6 +16,8 @@
   let virtualFrame = 0;
   let lastWindowKey = '';
   let eventPage = 0;
+  let statusPage = 0;
+  let budgetPage = 0;
   let issueKey = '';
   let issueCache = new Map();
 
@@ -24,7 +28,7 @@
   });
 
   function eventCount() { return state.events?.length || 0; }
-  function largePlan() { return eventCount() >= LARGE_PLAN; }
+  function largePlan() { const pref=localStorage.getItem('mscPerfModeV20')||'auto'; return pref==='always' || (pref!=='off' && eventCount() >= 20); }
   function safe(fn) { try { return fn?.(); } catch (err) { console.error(err); } }
 
   function rebuildIssues() {
@@ -162,7 +166,7 @@
 
   function eventsForWindow(viewport) {
     const all = visible();
-    if (all.length < LARGE_PLAN) return all;
+    if (!largePlan()) return all;
     const b = worldBounds(viewport);
     const inside = all.filter(e => {
       const x=+e.position?.x||0,y=+e.position?.y||0;
@@ -175,15 +179,16 @@
 
   function refreshVirtual(force=false) {
     const viewport=document.getElementById('plannerViewport'),world=document.getElementById('plannerWorld');
-    if (!viewport || !world || !largePlan()) return;
+    if (!viewport || !world) return;
     if (drag?.type === 'block') return;
     const z=Math.max(.01,zoom||1), key=`${Math.round(viewport.scrollLeft/(220*z))}|${Math.round(viewport.scrollTop/(220*z))}|${state.version||0}|${search||''}|${inlineEditId}`;
     if (!force && key===lastWindowKey) return;
     lastWindowKey=key;
     const ev=eventsForWindow(viewport);
+    if(force){const chunks=world.querySelector('.v20-month-chunk-layer');if(chunks)chunks.innerHTML=chunkMarkup();}
     let cards=world.querySelector('#v23PlanCards');
     if(!cards){cards=document.createElement('div');cards.id='v23PlanCards';cards.style.display='contents';world.appendChild(cards);}
-    cards.innerHTML=ev.map(cardMarkup).join('');
+    cards.innerHTML=ev.map(cardMarkup).join('') || (visible().length ? '' : '<div class="empty-board"><strong>Empty board</strong><p>Double-click the canvas or press Block to add an event.</p></div>');
     const svg=world.querySelector('.connections');
     if(svg){
       try{svg.innerHTML=typeof connections==='function'?connections(ev):'';}catch(err){console.warn('Connection paint skipped',err);svg.innerHTML='';}
@@ -198,7 +203,6 @@
   }
 
   function virtualPlan() {
-    if (!largePlan()) return delegatePlan ? delegatePlan() : undefined;
     window.MSC_V8?.ensureState?.();
     ensureWorld();
     const old=document.getElementById('plannerViewport');
@@ -220,6 +224,17 @@
     document.getElementById('eventsView').innerHTML=`<div class="events-shell"><div class="panel"><div class="panel-header"><div><h2>All events</h2><p>${list.length.toLocaleString()} events · showing ${start+1}–${Math.min(list.length,start+EVENT_PAGE)}</p></div><div class="panel-actions"><button class="button secondary" data-view="plan">Open Plan</button></div></div>${table(part)}<div class="v23-page-controls"><button class="button secondary compact" data-v23-event-page="-1" ${eventPage===0?'disabled':''}>← Previous</button><span>Page ${eventPage+1} of ${pages}</span><button class="button secondary compact" data-v23-event-page="1" ${eventPage>=pages-1?'disabled':''}>Next →</button></div></div></div>`;
   }
 
+  function renderLargeStatus() {
+    const list=visible(),groups=new Map(STATUSES.map(s=>[s,[]]));for(const e of list)(groups.get(e.status)||groups.get(STATUSES[0])).push(e);
+    const pages=Math.max(1,...[...groups.values()].map(g=>Math.ceil(g.length/STATUS_PAGE)));statusPage=Math.max(0,Math.min(statusPage,pages-1));const start=statusPage*STATUS_PAGE;
+    document.getElementById('boardView').innerHTML=`<div class="v23-status-pager v23-page-controls"><button class="button secondary compact" data-v23-status-page="-1" ${statusPage===0?'disabled':''}>← Previous</button><span>Status page ${statusPage+1} of ${pages} · up to ${STATUS_PAGE} cards per column</span><button class="button secondary compact" data-v23-status-page="1" ${statusPage>=pages-1?'disabled':''}>Next →</button></div><div class="board-grid">${STATUSES.map(st=>{const all=groups.get(st),part=all.slice(start,start+STATUS_PAGE);return `<section class="board-col" data-status-drop="${esc(st)}"><div class="board-col-head">${esc(st)} · ${all.length}${all.length>part.length?` · showing ${part.length}`:''}</div><div class="board-col-body">${part.map(e=>`<article class="board-card" draggable="true" data-board-drag="${esc(e.id)}" data-open-event="${esc(e.id)}"><strong>${esc(e.name)}</strong><small>${fmtDate(e.start)} · ${esc(e.lead||'Unassigned')}</small><div class="board-card-meta">${approvalLabel(e.approvalStatus)}<span style="color:#666;font-size:.62rem">${esc(e.venue||'')}</span></div></article>`).join('')}</div></section>`}).join('')}</div>`;
+  }
+
+  function renderLargeBudget() {
+    const list=visible(),planned=list.reduce((n,e)=>n+(+e.budgetPlanned||0),0),actual=list.reduce((n,e)=>n+(+e.budgetActual||0),0),pages=Math.max(1,Math.ceil(list.length/BUDGET_PAGE));budgetPage=Math.max(0,Math.min(budgetPage,pages-1));const start=budgetPage*BUDGET_PAGE,part=list.slice(start,start+BUDGET_PAGE);
+    document.getElementById('budgetView').innerHTML=`<div class="budget-shell"><div class="metrics">${metric('Council budget',money(state.annualBudget),'Annual')}${metric('Planned',money(planned),'Across events')}${metric('Spent',money(actual),'Actual')}${metric('Remaining',money(Math.max(0,state.annualBudget-actual)),'After actual spending')}</div><div class="panel" style="margin-top:16px"><div class="panel-header"><div><h2>Event budgets</h2><p>${list.length.toLocaleString()} events · showing ${start+1}–${Math.min(list.length,start+BUDGET_PAGE)}</p></div></div>${table(part)}<div class="v23-page-controls"><button class="button secondary compact" data-v23-budget-page="-1" ${budgetPage===0?'disabled':''}>← Previous</button><span>Page ${budgetPage+1} of ${pages}</span><button class="button secondary compact" data-v23-budget-page="1" ${budgetPage>=pages-1?'disabled':''}>Next →</button></div></div></div>`;
+  }
+
   function renderActive() {
     document.body?.classList.toggle('v23-large-board',eventCount()>=LARGE_PLAN);
     if(view==='boards' && window.MSC_V10?.renderBoards) return window.MSC_V10.renderBoards();
@@ -230,10 +245,10 @@
       if(visible().length>EVENT_PAGE) return renderLargeEvents();
       return events();
     }
-    if(view==='board') return statusBoard();
+    if(view==='board') return visible().length>250?renderLargeStatus():statusBoard();
     if(view==='calendar') return calendar();
     if(view==='venues') return venues();
-    if(view==='budget') return budget();
+    if(view==='budget') return visible().length>BUDGET_PAGE?renderLargeBudget():budget();
   }
   renderActive.__mscV23 = true;
 
@@ -265,6 +280,8 @@
     const cancel=e.target.closest?.('[data-v23-cancel]');if(cancel){e.preventDefault();inlineEditId='';scheduleVirtual(true);return;}
     const more=e.target.closest?.('[data-v23-more]');if(more){e.preventDefault();const ev=state.events.find(x=>x.id===more.dataset.v23More);if(ev)openEvent(ev);return;}
     const pager=e.target.closest?.('[data-v23-event-page]');if(pager){e.preventDefault();eventPage+=+pager.dataset.v23EventPage;renderLargeEvents();return;}
+    const sp=e.target.closest?.('[data-v23-status-page]');if(sp){e.preventDefault();statusPage+=+sp.dataset.v23StatusPage;renderLargeStatus();return;}
+    const bp=e.target.closest?.('[data-v23-budget-page]');if(bp){e.preventDefault();budgetPage+=+bp.dataset.v23BudgetPage;renderLargeBudget();return;}
   },true);
 
   document.addEventListener('submit',e=>{

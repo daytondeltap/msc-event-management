@@ -3,10 +3,10 @@ function bind(){
     let t=e.target.closest('[data-view]');if(t){setView(t.dataset.view);return;}
     t=e.target.closest('[data-select-event]');if(t){selectEvent(t.dataset.selectEvent);return;}
     t=e.target.closest('[data-open-event]');if(t){const ev=state.events.find(x=>x.id===t.dataset.openEvent);if(ev)openEvent(ev);return;}
-    if(e.target.closest('[data-close-drawer]')){closeDrawer();return;}if(e.target.closest('[data-close-share]')){$('#shareModal').classList.remove('open');return;}if(e.target.closest('[data-close-account]')){$('#accountModal').classList.remove('open');return;}if(e.target.closest('[data-close-maps]')){$('#mapsSetupModal').classList.remove('open');return;}if(e.target.closest('[data-close-import]')){$('#importModal').classList.remove('open');return;}
+    if(e.target.closest('[data-close-drawer]')){closeDrawer();return;}if(e.target.closest('[data-close-share]')){$('#shareModal').classList.remove('open');return;}if(e.target.closest('[data-close-account]')){$('#accountModal').classList.remove('open');return;}if(e.target.closest('[data-close-maps]')){$('#mapsSetupModal').classList.remove('open');return;}if(e.target.closest('[data-close-import]')){const m=$('#importModal');m?.classList.remove('open');m?.setAttribute('aria-hidden','true');return;}
     const a=e.target.closest('[data-plan-action]');if(a){const act=a.dataset.planAction;if(act==='add')openEvent(null,{x:1100+Math.random()*700,y:720+Math.random()*550});if(act==='center'){const p=$('#plannerViewport');p.scrollLeft=1050;p.scrollTop=650}if(act==='fit'){zoom=.68;save(false);plan()}if(act==='plus'){const p=$('#plannerViewport'),r=p.getBoundingClientRect();zoomAt(p,r.left+r.width/2,r.top+r.height/2,.1)}if(act==='minus'){const p=$('#plannerViewport'),r=p.getBoundingClientRect();zoomAt(p,r.left+r.width/2,r.top+r.height/2,-.1)}return;}
-    if(e.target.id==='configureMapsButton'||e.target.id==='configureMapsEmpty'||e.target.id==='configureMapsRetry'){$('#mapsApiKeyInput').value=getMapsKey();$('#mapsSetupModal').classList.add('open');return;}
-    if(e.target.id==='fitVenueMap'){initVenueMap();return;}
+    if(e.target.id==='configureMapsButton'||e.target.id==='configureMapsEmpty'||e.target.id==='configureMapsRetry'){const input=$('#mapsApiKeyInput');if(input){input.value=getMapsKey?.()||'';$('#mapsSetupModal')?.classList.add('open');}else if(window.MSC_LOAD_MAPS){window.MSC_LOAD_MAPS();}return;}
+    if(e.target.id==='fitVenueMap'){if(window.MSC_LOAD_MAPS)window.MSC_LOAD_MAPS();else initVenueMap?.();return;}
     if(!e.target.closest('#presencePopover')&&!e.target.closest('#presenceButton'))$('#presencePopover').classList.remove('open');
   });
 
@@ -23,14 +23,14 @@ function bind(){
   $('#newSharedBoard').onclick=createShared;$('#leaveSharedBoard').onclick=leaveShared;
   $('#copyShareLink').onclick=async()=>{if(!room)return toast('Create a shared board first');await navigator.clipboard.writeText(location.href);toast('Share link copied');};
   $('#displayName').onchange=async e=>{displayName=e.target.value.trim()||displayName;localStorage.mscDisplayName=displayName;await updatePresence();presenceUI();};
-  $('#saveMapsKey').onclick=()=>{const k=$('#mapsApiKeyInput').value.trim();if(k)localStorage.mscGoogleMapsKey=k;else delete localStorage.mscGoogleMapsKey;mapsPromise=null;$('#mapsSetupModal').classList.remove('open');venues();toast('Maps setting saved');};
-  $('#clearMapsKey').onclick=()=>{delete localStorage.mscGoogleMapsKey;mapsPromise=null;$('#mapsApiKeyInput').value='';$('#mapsSetupModal').classList.remove('open');venues();toast('Maps key cleared');};
-  $('#exportButton').onclick=exportJSON;$('#importButton').onclick=()=>$('#importModal').classList.add('open');
+  const saveMapsKey=$('#saveMapsKey');if(saveMapsKey)saveMapsKey.onclick=()=>{const input=$('#mapsApiKeyInput'),k=input?.value.trim()||'';if(k)localStorage.mscGoogleMapsKey=k;else localStorage.removeItem('mscGoogleMapsKey');mapsPromise=null;$('#mapsSetupModal')?.classList.remove('open');venues();toast('Maps setting saved');};
+  const clearMapsKey=$('#clearMapsKey');if(clearMapsKey)clearMapsKey.onclick=()=>{localStorage.removeItem('mscGoogleMapsKey');mapsPromise=null;const input=$('#mapsApiKeyInput');if(input)input.value='';$('#mapsSetupModal')?.classList.remove('open');venues();toast('Maps key cleared');};
+  $('#exportButton').onclick=exportJSON;$('#importButton').onclick=()=>{const m=$('#importModal');m?.classList.add('open');m?.setAttribute('aria-hidden','false');};
   $('#calendarFile').onchange=e=>e.target.files[0]&&loadImport(e.target.files[0]);$('#dropZone').ondragover=e=>e.preventDefault();$('#dropZone').ondrop=e=>{e.preventDefault();e.dataTransfer.files[0]&&loadImport(e.dataTransfer.files[0]);};
   $('#confirmImportButton').onclick=()=>{const add=$$('[data-import-index]:checked').map(x=>imports[+x.dataset.importIndex]);state.events.push(...add);save();render();setView(view,false);$('#importModal').classList.remove('open');toast(`${add.length} event${add.length===1?'':'s'} imported`);};
 
   document.addEventListener('pointerdown',e=>{
-    const h=e.target.closest('[data-drag-block]');if(h){const ev=state.events.find(x=>x.id===h.dataset.dragBlock);if(ev){beginBlockDrag(ev,e);h.setPointerCapture?.(e.pointerId);e.preventDefault();}return;}
+    const h=e.target.closest('[data-drag-block]');if(h){if(e.target.closest('button,input,select,textarea,a,[role=button]'))return;const ev=state.events.find(x=>x.id===h.dataset.dragBlock);if(ev){beginBlockDrag(ev,e);h.setPointerCapture?.(e.pointerId);e.preventDefault();}return;}
     const p=e.target.closest('#plannerViewport');if(p&&!e.target.closest('.event-block')&&(e.button===0||e.button===1||spaceDown)){drag={type:'pan',p,startX:e.clientX,startY:e.clientY,left:p.scrollLeft,top:p.scrollTop};p.classList.add('panning');p.setPointerCapture?.(e.pointerId);e.preventDefault();}
   });
   document.addEventListener('pointermove',e=>{
