@@ -10,7 +10,8 @@
 
   function renderActive() {
     try {
-      if (view === 'boards') return window.MSC_V10?.renderBoards?.();
+      const feature = window.MSC_FEATURE_RENDERERS?.[view];
+      if (feature) return feature();
       if (view === 'contacts') return window.MSC_V8?.contactsView?.();
       return window.MSC_V23?.renderActive?.();
     } catch (err) {
@@ -46,7 +47,6 @@
     try { window.MSC_V23?.reassert?.(false); } catch {}
     render = renderActive;
     setView = safeSetView;
-    if (window.MSC_V23?.renderActive) plan = plan?.__mscV23 ? plan : plan;
   }
 
   V24.renderActive = renderActive;
