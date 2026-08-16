@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050505" />
   <meta name="color-scheme" content="dark" />
   <title>MSC Event Management</title>
-  <link rel="stylesheet" href="styles.css?v=20260815-2336-v23" />
+  <link rel="stylesheet" href="styles.css?v=20260816-0748-v24" />
 </head>
 <body>
   <div id="mscAeroWallpaperLayer" class="msc-aero-wallpaper" aria-hidden="true"><img id="mscAeroAsadalImage" src="assets/asadal.jpg?v=20260815-1940-v19" alt="" decoding="async" fetchpriority="high" /></div>
@@ -110,7 +110,7 @@
           <div class="section-label"><h3>Logistics</h3><span>Place, materials, money</span></div>
           <div class="field-grid two">
             <label class="field"><span>Venue</span><input name="venue" placeholder="Auditorium, Gym…" /></label>
-            <label class="field"><span>Map address</span><input name="venueAddress" placeholder="Full address for Google Maps" /></label>
+            <label class="field"><span>Map address</span><input name="venueAddress" placeholder="Full address for OpenStreetMap" /></label>
           </div>
           <label class="field full"><span>Materials required</span><input name="materials" placeholder="Comma separated" /></label>
           <div class="field-grid two">
@@ -188,22 +188,18 @@
     <div class="modal-backdrop" data-close-maps></div>
     <section class="modal-card account-card" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <div><div class="eyebrow">Venues</div><h2>Google Maps setup</h2><p>Add a browser-restricted Maps JavaScript API key.</p></div>
+        <div><div class="eyebrow">Venues</div><h2>Map setup</h2><p>OpenStreetMap loads only when Venues is opened.</p></div>
         <button class="icon-button" data-close-maps>×</button>
       </div>
-      <div class="name-row">
-        <label class="field"><span>Maps API key</span><input id="mapsApiKeyInput" type="password" autocomplete="off" placeholder="AIza…" /></label>
-      </div>
-      <div class="setup-note">This is a browser API key, not a secret credential. Restrict it in Google Cloud to the Maps JavaScript API and your GitHub Pages HTTP referrer.</div>
-      <div class="modal-actions split"><button class="button danger ghost" id="clearMapsKey">Clear key</button><button class="button primary" id="saveMapsKey">Save on this browser</button></div>
+      <div class="setup-note">No Google Maps key is required. OpenStreetMap and location tools are loaded on demand so they cannot block the planner.</div>
     </section>
   </div>
 
   <div id="importModal" class="modal" aria-hidden="true">
     <div class="modal-backdrop" data-close-import></div>
     <section class="modal-card" role="dialog" aria-modal="true">
-      <div class="modal-header"><div><div class="eyebrow">Calendar import</div><h2>Import events</h2><p>Supports .ics / .ical and JSON.</p></div><button class="icon-button" data-close-import>×</button></div>
-      <label class="drop-zone" id="dropZone"><input id="calendarFile" type="file" accept=".ics,.ical,.json" hidden /><span class="drop-icon">↥</span><strong>Choose or drop a calendar file</strong><small>Review before importing</small></label>
+      <div class="modal-header"><div><div class="eyebrow">Calendar import</div><h2>Import events</h2><p>Supports .ics / .ical, JSON and text-based PDF calendars.</p></div><button class="icon-button" data-close-import>×</button></div>
+      <label class="drop-zone" id="dropZone"><input id="calendarFile" type="file" accept=".ics,.ical,.json,.pdf,application/pdf" hidden /><span class="drop-icon">↥</span><strong>Choose or drop a calendar file</strong><small>Review before importing</small></label>
       <div id="importPreview" class="import-preview"></div>
       <div class="modal-actions"><button class="button secondary" data-close-import>Cancel</button><button class="button primary" id="confirmImportButton" disabled>Import selected</button></div>
     </section>
@@ -212,12 +208,17 @@
   <div id="cursorLayer" class="cursor-layer"></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="config.js?v=20260815-2336-v23"></script>
+  <script src="config.js?v=20260816-0748-v24"></script>
   <script src="app-core.js"></script>
   <script src="app-views.js"></script>
   <script src="app-online.js"></script>
   <script src="app-integrations.js"></script>
-  <script src="app-v23-page-kernel.js?v=20260815-2336-v23"></script>
+  <script src="app-v23-page-kernel.js?v=20260816-0748-v24"></script>
+  <script src="app-v24-page-controller.js?v=20260816-0748-v24"></script>
+  <script src="app-v24-safe-planner.js?v=20260816-0748-v24"></script>
+  <script src="app-v8-pdf.js?v=20260816-0748-v24"></script>
+  <script src="app-v21-large-import.js?v=20260816-0748-v24"></script>
   <script src="app-bind.js"></script>
+  <script src="app-v24-feature-loader.js?v=20260816-0748-v24"></script>
 </body>
 </html>
