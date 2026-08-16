@@ -1,0 +1,155 @@
+/* MSC v26: themed controls + motion polish. No planner/state behavior lives here. */
+
+/* Hide the temporary simplified v25 player; v26 restores the glossy Aero player. */
+.v25-audio-player { display: none !important; }
+
+.v26-aero-player {
+  opacity: 0;
+  transform: translateY(12px) scale(.985);
+  pointer-events: none;
+  transition:
+    opacity .24s cubic-bezier(.2,.75,.25,1),
+    transform .28s cubic-bezier(.2,.75,.25,1),
+    box-shadow .24s ease !important;
+}
+.v26-aero-player.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Replace plain browser checkboxes without touching existing custom switch controls. */
+.import-row input[type="checkbox"],
+.v25-setting-row input[type="checkbox"],
+.v20-setting-row input[type="checkbox"],
+.v17-check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  margin: 0;
+  border-radius: 7px;
+  border: 1px solid #454545;
+  background: linear-gradient(180deg, #1c1c1c 0%, #101010 100%);
+  box-shadow: inset 0 1px rgba(255,255,255,.07), 0 2px 6px rgba(0,0,0,.26);
+  position: relative;
+  cursor: pointer;
+  transition:
+    transform .15s ease,
+    border-color .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+.import-row input[type="checkbox"]::after,
+.v25-setting-row input[type="checkbox"]::after,
+.v20-setting-row input[type="checkbox"]::after,
+.v17-check input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 3px 3px 0;
+  opacity: 0;
+  transform: rotate(45deg) scale(.35);
+  transition: opacity .14s ease, transform .16s cubic-bezier(.2,.8,.2,1);
+}
+.import-row input[type="checkbox"]:hover,
+.v25-setting-row input[type="checkbox"]:hover,
+.v20-setting-row input[type="checkbox"]:hover,
+.v17-check input[type="checkbox"]:hover {
+  transform: translateY(-1px);
+  border-color: #708cff;
+}
+.import-row input[type="checkbox"]:checked,
+.v25-setting-row input[type="checkbox"]:checked,
+.v20-setting-row input[type="checkbox"]:checked,
+.v17-check input[type="checkbox"]:checked {
+  background: linear-gradient(180deg, #86b7ff 0%, #537dfb 47%, #315cf0 52%, #6b8fff 100%);
+  border-color: #8fb4ff;
+  box-shadow: inset 0 1px rgba(255,255,255,.35), 0 4px 12px rgba(58,93,235,.3);
+}
+.import-row input[type="checkbox"]:checked::after,
+.v25-setting-row input[type="checkbox"]:checked::after,
+.v20-setting-row input[type="checkbox"]:checked::after,
+.v17-check input[type="checkbox"]:checked::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+}
+
+html[data-theme="aero"] .import-row input[type="checkbox"],
+html[data-theme="aero"] .v25-setting-row input[type="checkbox"],
+html[data-theme="aero"] .v20-setting-row input[type="checkbox"],
+html[data-theme="aero"] .v17-check input[type="checkbox"] {
+  border-color: #64add1;
+  background: linear-gradient(180deg, #ffffff 0%, #e8f8ff 43%, #bfe6f7 51%, #f9fdff 100%);
+  box-shadow: inset 0 1px #fff, 0 3px 8px rgba(0,91,146,.17);
+}
+html[data-theme="aero"] .import-row input[type="checkbox"]:checked,
+html[data-theme="aero"] .v25-setting-row input[type="checkbox"]:checked,
+html[data-theme="aero"] .v20-setting-row input[type="checkbox"]:checked,
+html[data-theme="aero"] .v17-check input[type="checkbox"]:checked {
+  border-color: #5ca63d;
+  background: linear-gradient(180deg, #f6ffe9 0%, #d7f5ae 43%, #73c94d 51%, #c8ef93 100%);
+  box-shadow: inset 0 1px #fff, 0 4px 10px rgba(66,150,53,.25);
+}
+
+/* Smooth existing UI without changing feature behavior. */
+html:not(.reduce-motion) .button,
+html:not(.reduce-motion) .icon-button,
+html:not(.reduce-motion) .nav-item,
+html:not(.reduce-motion) .account-button,
+html:not(.reduce-motion) .presence-button,
+html:not(.reduce-motion) .board-card,
+html:not(.reduce-motion) .panel,
+html:not(.reduce-motion) .metric,
+html:not(.reduce-motion) .v25-setting-section,
+html:not(.reduce-motion) .modal-card,
+html:not(.reduce-motion) .drawer-panel {
+  transition:
+    transform .2s cubic-bezier(.2,.75,.25,1),
+    box-shadow .22s ease,
+    border-color .2s ease,
+    background-color .2s ease,
+    opacity .2s ease;
+}
+html:not(.reduce-motion) .button:hover,
+html:not(.reduce-motion) .icon-button:hover,
+html:not(.reduce-motion) .account-button:hover,
+html:not(.reduce-motion) .presence-button:hover {
+  transform: translateY(-1px);
+}
+html:not(.reduce-motion) .nav-item:hover,
+html:not(.reduce-motion) .board-card:hover,
+html:not(.reduce-motion) .v25-setting-section:hover {
+  transform: translateY(-1.5px);
+}
+html:not(.reduce-motion) .modal.open .modal-card,
+html:not(.reduce-motion) .drawer.open .drawer-panel,
+html:not(.reduce-motion) .v25-settings.open .v25-settings-card {
+  animation: v26-surface-in .24s cubic-bezier(.2,.78,.25,1) both;
+}
+@keyframes v26-surface-in {
+  from { opacity: 0; transform: translateY(7px) scale(.992); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* New attached wallpaper: fill viewport with the same minor blur requested earlier. */
+html[data-theme="aero"] #mscAeroWallpaperLayer {
+  inset: -8px !important;
+  width: calc(100vw + 16px) !important;
+  height: calc(100vh + 16px) !important;
+}
+html[data-theme="aero"] #mscAeroWallpaperLayer #mscAeroAsadalImage {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  transform: scale(1.012) !important;
+  filter: blur(1.15px) !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
