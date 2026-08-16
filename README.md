@@ -2,7 +2,7 @@
 
 MSC Event Management is a browser-based Middle School Council planning workspace. It combines a spatial event plan, calendar import, approval workflow, contacts/email automation, venue mapping, budgets, persistent boards and live collaboration.
 
-**Current stability baseline: v25.** The v25 runtime deliberately keeps core planning code small and deterministic. Optional server-backed features are lazy-loaded only when opened.
+**Current stability baseline: v26.** v25 remains the stable functional core; v26 is a visual-only Aero/control polish layer. Optional server-backed features are still lazy-loaded only when opened.
 
 ## Feature stability matrix
 
@@ -45,16 +45,16 @@ MSC Event Management is a browser-based Middle School Council planning workspace
 | Venues | OpenStreetMap | `app-osm.js` | Lazy / stable | Loaded only when Venues is opened. |
 | Venues | Venue search | `app-v8-osm-search.js` | Lazy / stable | Explicit Nominatim search with throttling/cache; no Google Maps key required. |
 | Appearance | Dark / Light / System | `app-v25-contacts-settings.js` | Stable | Saved per browser. |
-| Appearance | Frutiger Aero Easter egg | `app-v25-contacts-settings.js` + `features-v17.css`–`features-v25.css` | Stable | Unlock with five clicks on the small ✦ in Appearance. |
-| Appearance | Asadal wallpaper | `assets/asadal.jpg`, `features-v19.css` | Stable | Scaled to cover the viewport with only a small blur; no tint/brightness/saturation modification. |
+| Appearance | Frutiger Aero Easter egg | `app-v25-contacts-settings.js` + `features-v17.css`–`features-v26.css` | Stable | Unlock with five clicks on the small ✦ in Appearance. |
+| Appearance | Frutiger Aero wallpaper | `assets/aero-wallpaper-v26.jpg`, `features-v26.css` | Stable | Uses the v26 attached grass/city wallpaper, scaled to cover with the same minor blur and no tint/brightness/saturation change. |
 | Appearance | Aero typography | `features-v17.css` | Stable | Helvetica Neue/Helvetica/Arial; bold Aero UI typography and no black/dark Aero text. |
-| Accessibility | Reduce motion | `app-v25-contacts-settings.js`, `features-v25.css` | Stable | Disables non-essential animation/transitions. |
+| Accessibility | Reduce motion | `app-v25-contacts-settings.js`, `features-v25.css`, `features-v26.css` | Stable | Disables non-essential animation/transitions; v26 polish respects the same setting. |
 | Help | Onboarding tutorial | `app-v25-contacts-settings.js` | Stable | Uses the actual running UI, a website cursor overlay, and lazy live UI captures when html2canvas is available. |
-| Audio | Aero soundtrack URL player | `app-v25-contacts-settings.js`, `MSC_CONFIG.aeroTracks` | Ready for authorized audio | Clients automatically use configured server URLs. Copyrighted uploaded tracks are not bundled into the public repo. |
+| Audio | Aero soundtrack URL player | `app-v26-aero-polish.js`, `MSC_CONFIG.aeroTracks` | Ready for authorized audio | Restored glossy previous/play/next/volume player appears in Aero mode and automatically uses configured authorized server URLs. Copyrighted uploaded tracks are not bundled into the public repo. |
 
-## v25 stability rules
+## v26 stability rules
 
-The earlier app accumulated many enhancement layers that independently replaced `render()`, `plan()`, `setView()` and `save()`. That made unrelated features capable of breaking one another. v25 follows these rules:
+The earlier app accumulated many enhancement layers that independently replaced `render()`, `plan()`, `setView()` and `save()`. That made unrelated features capable of breaking one another. v26 keeps the v25 functional architecture and follows these rules:
 
 1. **One owner per core interaction.** `app-bind.js` owns canvas/event pointer input, the v23 kernel owns Plan rendering/virtualization, and `app-v24-safe-planner.js` owns graph connections.
 2. **No body-wide MutationObserver in the core runtime.** Legacy body-wide observers are blocked when the remaining lazy sharing module loads. The only observer used by the v25 loader is scoped to the Boards view.
@@ -83,7 +83,8 @@ Run this after changes that touch startup, Plan, Contacts, import, or lazy featu
 - [ ] Save preset does not reload/navigate and retains its recipient target.
 - [ ] Manual composer resolves the selected contact/role.
 - [ ] Options opens and large-calendar controls update state.
-- [ ] Five ✦ clicks unlock Frutiger Aero; Aero displays Asadal and the Aero typography/colors.
+- [ ] Five ✦ clicks unlock Frutiger Aero; Aero displays the v26 grass/city wallpaper and Aero typography/colors.
+- [ ] The glossy Aero soundtrack player appears in Frutiger Aero mode.
 - [ ] Boards opens on demand; create/open/history controls render.
 - [ ] Share opens the board-first sharing UI.
 - [ ] Venues loads OSM on demand and a map failure does not break other views.
@@ -115,6 +116,7 @@ These numbers are diagnostic baselines from the automated headless Chromium test
 - `app-v21-large-import.js` — non-blocking bulk import pipeline.
 - `app-bind.js` — core event/pointer/keyboard bindings; all optional-element bindings must be null-safe.
 - `app-v25-contacts-settings.js` — stable Contacts, email presets, Options/themes, Email API UI and tutorial.
+- `app-v26-aero-polish.js` — Aero soundtrack UI only; no render/save/setView wrappers.
 
 ### Lazy-loaded features
 
@@ -123,7 +125,7 @@ These numbers are diagnostic baselines from the automated headless Chromium test
 - Boards/Share: `app-v9-persistence.js`, `app-v10-boards.js`, guarded `app-v11-sharing-fixed.js`.
 - Venues map: Leaflet, `app-osm.js`, `app-v8-osm-search.js`.
 
-Old v8/v9 planner wrappers and old v14–v19 Contacts/Aero controller chains remain in repository history/files for reference but are **not part of the v25 startup runtime**.
+Old v8/v9 planner wrappers and old v14–v19 Contacts/Aero controller chains remain in repository history/files for reference but are **not part of the v26 startup runtime**.
 
 ## Local development
 
