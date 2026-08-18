@@ -53,12 +53,12 @@
   if(typeof save==='function'){
     const coreSave=save;
     save=function(sync=true){
+      try{state.updatedAt=Date.now()}catch{}
       try{coreSave(sync)}catch(err){
         recordError('save',err);
         if(Date.now()-lastStorageWarning>8000){lastStorageWarning=Date.now();try{toast('Local storage is unavailable — keeping a recovery copy where possible')}catch{}}
         try{if(sync&&typeof broadcast==='function'&&!remoteApplying)broadcast('state',{from:tabId,state:cleanState()})}catch{}
       }
-      try{state.updatedAt=Date.now()}catch{}
       queueRecovery();
     };
   }
