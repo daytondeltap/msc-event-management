@@ -8,7 +8,7 @@ async function initSupabase() {
   } catch(err){console.error(err);toast('Online services unavailable — local mode still works');}
 }
 function setAuthUser(user){
-  authUser=user; const md=user?.user_metadata||{}; if(user){displayName=md.full_name||md.name||user.email?.split('@')[0]||displayName;avatarUrl=md.avatar_url||md.picture||'';localStorage.mscDisplayName=displayName;} else avatarUrl=''; accountUI(); presenceUI(); if(channel&&connected)updatePresence();
+  authUser=user; const md=user?.user_metadata||{}; if(user){displayName=md.full_name||md.name||user.email?.split('@')[0]||displayName;avatarUrl=md.avatar_url||md.picture||'';safeStorageSet(localStorage,'mscDisplayName',displayName);} else avatarUrl=''; accountUI(); presenceUI(); if(channel&&connected)updatePresence();
 }
 async function signInGoogle(){
   if(!supabase)return toast('Supabase is still connecting');
@@ -51,7 +51,14 @@ async function connectRoom(){
     });
 }
 async function reconnectRoom(){if(room&&supabase)await connectRoom();}
-function applyRemoteState(next){remoteApplying=true;state={...state,...next};normalize();zoom=state.zoom||zoom;localStorage.setItem(storageKey(),JSON.stringify(state));render();setView(view,false);remoteApplying=false;}
+function applyRemoteState(next){
+  if(!next||typeof next!=='object'||!Array.isArray(next.events))return false;
+  const previous=remoteApplying;remoteApplying=true;
+  try{
+    state={...state,...next};normalize();zoom=state.zoom||zoom;persistLocalState();render();setView(view,false);return true;
+  }catch(error){console.error('Remote state apply failed',error);toast('A collaborator update could not be applied safely');return false;}
+  finally{remoteApplying=previous;}
+}
 function patchPeerActivity(payload){if(!peers[payload.from])peers[payload.from]={clientId:payload.from,name:payload.name,avatar:payload.avatar,view:'plan'};peers[payload.from]={...peers[payload.from],selectedEventId:payload.eventId||null,action:payload.action||'idle',view:payload.view||peers[payload.from].view};}
 function broadcast(event,payload){if(!channel||!connected)return;channel.send({type:'broadcast',event,payload});}
 function presenceUI(){
@@ -70,7 +77,7 @@ function drawRemoteCursors(){
 }
 
 function createShared(){
-  room=uid().replaceAll('-','')+uid().replaceAll('-','').slice(0,16); state={events:[],annualBudget:100000,zoom:1,version:1}; zoom=1; localStorage.setItem(storageKey(),JSON.stringify(state));
+  room=uid().replaceAll('-','')+uid().replaceAll('-','').slice(0,16); state={events:[],annualBudget:100000,zoom:1,version:1}; zoom=1; persistLocalState();
   const u=new URL(location.href);u.searchParams.set('board',room);history.replaceState({},'',u);render();setView('plan',false);connectRoom();toast('Empty shared board created');
 }
 async function leaveShared(){if(channel&&supabase)await supabase.removeChannel(channel);room='';connected=false;peers={};remoteCursors={};remoteActivities={};state=loadState();normalize();zoom=state.zoom||1;const u=new URL(location.href);u.searchParams.delete('board');history.replaceState({},'',u);render();setView('plan',false);toast('Returned to local board');}
