@@ -1,0 +1,125 @@
+/* MSC v29: cross-device navigation and reachability */
+:root{
+  --msc-vv-height:100dvh;
+  --msc-vv-width:100vw;
+  --msc-mobile-nav-height:68px;
+}
+html{scroll-padding-top:12px}
+body,.app-shell,.main-shell,.view,.content,.panel,.modal-card,.drawer-panel{min-width:0}
+button,a,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparent}
+button:focus-visible,.button:focus-visible,.nav-item:focus-visible,.icon-button:focus-visible,.account-button:focus-visible,.presence-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{
+  outline:3px solid rgba(114,167,255,.7)!important;
+  outline-offset:2px!important;
+}
+.modal.open,.drawer.open,.v25-settings.open{overscroll-behavior:contain}
+.modal-header,.drawer-header{scroll-margin-top:0}
+.modal-card,.drawer-panel,.v25-settings-card,.v20-node-editor{scrollbar-gutter:stable}
+.v20-node-editor{max-height:calc(var(--msc-vv-height) - 20px);overflow:auto;overscroll-behavior:contain}
+.presence-popover{max-height:min(520px,calc(var(--msc-vv-height) - 24px));overflow:auto;overscroll-behavior:contain}
+
+/* Medium laptop / tablet: keep the complete top bar reachable without clipping. */
+@media (min-width:901px) and (max-width:1180px){
+  :root{--sidebar:190px;--topbar:112px}
+  .sidebar{padding:14px 12px}.brand{gap:9px;padding-bottom:16px}.brand-mark{width:42px;height:42px}.brand-copy small{display:none}
+  .nav-item{padding-inline:10px;gap:8px}
+  .topbar{padding-inline:18px;gap:14px}.topbar-copy{min-width:150px}.topbar p{max-width:250px}
+  .topbar-actions{gap:7px;flex-wrap:wrap;justify-content:flex-end}.search-box{width:min(270px,27vw)}
+  .button,.account-button,.presence-button{padding-inline:11px}.account-label{max-width:70px}
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-two{grid-template-columns:1fr}
+  .venue-layout{grid-template-columns:minmax(270px,.8fr) minmax(380px,1.2fr)}
+  .v17-contacts-shell{grid-template-columns:minmax(0,1fr)}.v17-contact-editor{grid-column:1}.v17-directory-panel{grid-column:1}
+}
+
+@media (max-width:900px){
+  :root{--msc-mobile-nav-height:68px}
+  html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+  body{min-height:var(--msc-vv-height)!important}
+  .app-shell{min-height:var(--msc-vv-height)!important}
+  .main-shell{height:auto!important;min-height:var(--msc-vv-height)!important;padding-bottom:calc(var(--msc-mobile-nav-height) + env(safe-area-inset-bottom,0px))!important}
+  .view{max-width:100vw;overflow-x:hidden}
+
+  /* One horizontally scrollable nav contains page + utility actions. v29 JS moves Import/Export/Options here. */
+  .sidebar{height:calc(var(--msc-mobile-nav-height) + env(safe-area-inset-bottom,0px))!important;padding:6px max(7px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(7px,env(safe-area-inset-left,0px))!important;overflow:hidden!important}
+  .nav-list{width:100%!important;height:56px!important;overflow-x:auto!important;overflow-y:hidden!important;display:flex!important;scroll-snap-type:x proximity;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:0 2px!important}
+  .nav-list .nav-item{flex:0 0 72px!important;min-width:72px!important;height:54px!important;scroll-snap-align:nearest;padding:5px 4px!important}
+  .nav-list .nav-item b{max-width:68px!important}
+  .sidebar-bottom{display:none!important}
+
+  /* All top-level actions stay reachable on phones. */
+  .topbar{min-width:0!important;max-width:100vw;padding:calc(9px + env(safe-area-inset-top,0px)) 10px 9px!important}
+  .topbar-copy{min-width:0!important}.topbar-copy h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar-actions{grid-template-columns:minmax(0,1fr) repeat(4,44px)!important;gap:6px!important;min-width:0}
+  .search-box{grid-column:1/-1!important;min-width:0!important}
+  #shareButton{display:inline-flex!important;width:44px!important;min-width:44px!important;padding:0!important;justify-content:center!important;font-size:0!important}
+  #shareButton span{font-size:18px!important;margin:0!important}
+  #newEventButton{width:44px!important;min-width:44px!important;padding:0!important;justify-content:center!important;font-size:0!important}
+  #newEventButton span{font-size:18px!important;margin:0!important}
+  .account-button,.presence-button{width:44px!important;min-width:44px!important;max-width:44px!important;justify-content:center!important;padding:0!important}
+  .presence-stack{padding-left:0}.presence-avatar{margin-left:-12px}.presence-avatar:first-child{margin-left:0}.presence-button>span:last-child{display:none}
+
+  .content,.calendar-shell,.venue-shell,.budget-shell,.events-shell,.boards-shell,.v17-contacts-shell{padding:10px!important;max-width:100vw}
+  .panel-header{padding:14px!important;align-items:flex-start;flex-wrap:wrap}.panel-actions{flex-wrap:wrap}
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}.metric{padding:14px!important}
+  .grid-two{grid-template-columns:1fr!important}
+
+  /* Status/calendar remain horizontally navigable rather than clipping columns. */
+  .board-grid{grid-template-columns:repeat(5,minmax(260px,82vw))!important;min-width:max-content!important;padding:10px!important;gap:10px!important}
+  #boardView.active{overflow-x:auto!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch}
+  .calendar-shell{overflow-x:auto!important;-webkit-overflow-scrolling:touch}.calendar-grid{min-width:720px!important}
+  .table-wrap{width:100%;overflow:auto!important;-webkit-overflow-scrolling:touch}.table-wrap table{min-width:680px}
+
+  /* Venue page becomes stacked with a usable touch map. */
+  .venue-layout{grid-template-columns:1fr!important;gap:10px!important;min-height:0!important}.venue-list{max-height:42dvh!important}.venue-map-wrap{min-height:42dvh!important;height:42dvh!important}.venue-map{min-height:100%!important}
+
+  /* Contacts / preset editors become a single readable column. */
+  .v17-contacts-shell{grid-template-columns:1fr!important;gap:10px!important}.v17-contact-editor,.v17-directory-panel,.v17-email-panel,.v17-composer-panel{grid-column:1!important}
+  .v17-contact-row{grid-template-columns:minmax(0,1fr)!important;gap:6px!important;align-items:start!important}.v17-contact-row.head{display:none!important}.v17-contact-row>span,.v17-contact-row>a{min-width:0;overflow-wrap:anywhere}.v17-row-actions{flex-wrap:wrap!important}
+  .v17-form-grid,.v17-composer-grid,.v17-email-layout,.v17-preset-editor{grid-template-columns:1fr!important}.v17-form-grid .full,.v17-composer-grid .full,.v17-preset-editor .full,.v17-variable-box,.v17-recipient-preview,.v17-editor-title{grid-column:1!important}.v17-recipient-preview{flex-direction:column!important}
+
+  /* Every dialog keeps its close/header and action area reachable. */
+  .modal{padding:0!important;align-items:stretch!important}.modal-card{width:100%!important;max-width:100%!important;height:auto;max-height:var(--msc-vv-height)!important;border-radius:0!important;margin:auto 0 0!important;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))!important}
+  .modal-header,.drawer-header{position:sticky!important;top:0!important;z-index:8!important}.modal-actions,.drawer-actions{position:sticky;bottom:0;z-index:7;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));background:inherit}
+  .drawer-panel{height:var(--msc-vv-height)!important;max-height:var(--msc-vv-height)!important;padding-bottom:env(safe-area-inset-bottom,0px)!important}
+  .v25-settings-card{height:var(--msc-vv-height)!important;max-height:var(--msc-vv-height)!important;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}
+  .drop-zone{min-height:132px}
+
+  /* Floating controls must sit above the bottom navigation. */
+  .v17-aero-player,.v25-audio-player{bottom:calc(var(--msc-mobile-nav-height) + 8px + env(safe-area-inset-bottom,0px))!important;max-width:calc(100vw - 16px)!important}
+  .v25-tutorial-card{bottom:calc(var(--msc-mobile-nav-height) + 10px + env(safe-area-inset-bottom,0px))!important;max-height:calc(var(--msc-vv-height) - var(--msc-mobile-nav-height) - 30px)!important;overflow:auto!important}
+  .toast-region{bottom:calc(var(--msc-mobile-nav-height) + env(safe-area-inset-bottom,0px))!important;max-width:calc(100vw - 16px)!important}
+  .presence-popover{top:auto!important;bottom:calc(var(--msc-mobile-nav-height) + 8px + env(safe-area-inset-bottom,0px))!important;left:8px!important;right:8px!important;max-height:min(52dvh,420px)!important}
+  .v20-node-editor{width:calc(100vw - 16px)!important;max-height:calc(var(--msc-vv-height) - var(--msc-mobile-nav-height) - 20px)!important}
+
+  #plannerViewport{min-height:max(320px,calc(var(--msc-vv-height) - 220px))!important;touch-action:pan-x pan-y}
+  .planner-toolbar{max-width:100vw;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch}.toolbar-group{flex:0 0 auto}
+}
+
+@media (max-width:420px){
+  .nav-list .nav-item{flex-basis:64px!important;min-width:64px!important}.nav-list .nav-item b{font-size:9px!important;max-width:60px!important}
+  .metrics{grid-template-columns:1fr!important}
+  .topbar{gap:7px!important}.topbar-copy .eyebrow{display:none!important}.topbar-copy h1{font-size:1.15rem!important;margin:0!important}
+  .topbar-actions{grid-template-columns:minmax(0,1fr) repeat(4,42px)!important}.account-button,.presence-button,#shareButton,#newEventButton{width:42px!important;min-width:42px!important}
+  .board-grid{grid-template-columns:repeat(5,minmax(248px,88vw))!important}
+  .modal-actions .button,.drawer-actions .button,.share-actions .button{flex:1 1 100%!important;width:100%!important}
+  .board-card-actions .button{flex:1 1 calc(50% - 6px)!important}
+  .v25-theme-grid{grid-template-columns:1fr!important}
+}
+
+/* Short landscape phones: prioritize actual workspace height. */
+@media (max-width:900px) and (max-height:520px) and (orientation:landscape){
+  :root{--msc-mobile-nav-height:58px}
+  .sidebar{height:calc(58px + env(safe-area-inset-bottom,0px))!important;padding-top:3px!important}.nav-list{height:50px!important}.nav-list .nav-item{height:48px!important;min-height:48px!important;flex-basis:66px!important}.nav-list .nav-item span{font-size:15px!important}.nav-list .nav-item b{font-size:9px!important}
+  .topbar{display:flex!important;align-items:center!important;padding:calc(5px + env(safe-area-inset-top,0px)) 8px 5px!important;gap:8px!important}.topbar-copy{display:none!important}.topbar-actions{grid-template-columns:minmax(170px,1fr) repeat(4,40px)!important;display:grid!important}.search-box{grid-column:auto!important;height:40px!important}.account-button,.presence-button,#shareButton,#newEventButton{height:40px!important;min-height:40px!important;width:40px!important;min-width:40px!important}
+  .main-shell{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))!important}.plan-toolbar{min-height:48px!important;padding-block:4px!important}#plannerViewport{min-height:calc(var(--msc-vv-height) - 108px)!important}
+  .drawer-panel,.v25-settings-card{height:var(--msc-vv-height)!important}.modal-card{max-height:var(--msc-vv-height)!important}
+}
+
+@media (pointer:coarse){
+  button,.button,.nav-item,.icon-button,.account-button,.presence-button,.v17-row-actions button,.v17-var-chip{min-height:44px}
+  .planner-toolbar button{min-width:44px}
+  .cal-event{min-height:40px}
+}
+
+@media (min-width:1800px){
+  .content{max-width:2100px}.topbar-actions{gap:12px}.search-box{width:min(390px,22vw)}
+}
