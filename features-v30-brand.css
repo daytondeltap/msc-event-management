@@ -1,0 +1,20 @@
+/* generic event manager — branding only */
+.brand-mark,
+html[data-theme="aero"] .brand-mark{
+  font-family:"Comic Sans MS","Comic Sans",cursive!important;
+  font-weight:700!important;
+  font-size:1.18rem!important;
+  letter-spacing:-.08em!important;
+  line-height:1!important;
+}
+.brand-copy strong,
+.brand-copy small{
+  text-transform:none!important;
+}
+.brand-copy strong{
+  font-size:.86rem!important;
+  letter-spacing:-.02em;
+}
+.brand-copy small{
+  font-size:.68rem!important;
+}
