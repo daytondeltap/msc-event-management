@@ -33,7 +33,7 @@
 
   function resetViewportFit(){
     const topbar=document.querySelector('.topbar');
-    if(topbar){topbar.style.left='';topbar.style.width='';topbar.style.maxWidth='';topbar.style.position=''}
+    if(topbar){topbar.style.left='';topbar.style.width='';topbar.style.maxWidth='';}
     document.querySelectorAll('.v25-settings').forEach(el=>{el.style.left='';el.style.top='';el.style.right='';el.style.bottom='';el.style.width='';el.style.height=''})
   }
   function fitMobileViewport(){
@@ -43,19 +43,18 @@
     const width=Math.max(280,Math.floor(vv?.width||window.innerWidth));
     const height=Math.max(240,Math.floor(vv?.height||window.innerHeight));
 
-    // The mobile top bar lives inside main-shell. Offset it back to the actual visual viewport
-    // so browser chrome / emulation offsets cannot push action buttons off-screen.
-    const shell=document.querySelector('.main-shell'),topbar=document.querySelector('.topbar');
-    if(shell&&topbar){
-      const shellRect=shell.getBoundingClientRect();
-      topbar.style.position='relative';
-      topbar.style.left=`${Math.round(left-shellRect.left)}px`;
+    // The top bar is sticky. Its left value is a viewport threshold, not a normal offset,
+    // so compensate only for the visual viewport itself; subtracting main-shell's rect
+    // would double-apply any transient document offset and push controls off-screen.
+    const topbar=document.querySelector('.topbar');
+    if(topbar){
+      topbar.style.left=`${Math.round(left)}px`;
       topbar.style.width=`${width}px`;
       topbar.style.maxWidth=`${width}px`;
     }
 
-    // Fixed settings overlays otherwise size to the layout viewport, which can be a few CSS
-    // pixels taller than visualViewport on mobile Chrome. Bound the overlay to what is visible.
+    // Fixed settings overlays otherwise size to the layout viewport, which can differ slightly
+    // from visualViewport on mobile Chrome. Bound the overlay to the actually visible area.
     document.querySelectorAll('.v25-settings').forEach(el=>{
       el.style.left=`${Math.round(left)}px`;
       el.style.top=`${Math.round(top)}px`;
