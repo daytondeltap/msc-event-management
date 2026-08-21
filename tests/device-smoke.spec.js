@@ -13,6 +13,12 @@ const viewports = [
 async function rect(page, selector){
   return page.locator(selector).evaluate(el=>{const r=el.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height}});
 }
+async function visibleViewport(page){
+  return page.evaluate(()=>({
+    width:window.visualViewport?.width||window.innerWidth,
+    height:window.visualViewport?.height||window.innerHeight
+  }));
+}
 
 for (const vp of viewports) {
   test(`${vp.name}: primary UI remains reachable`, async ({ browser }) => {
@@ -24,6 +30,7 @@ for (const vp of viewports) {
     await page.waitForSelector('#plannerViewport',{timeout:10000});
     await page.waitForFunction(()=>window.MSC_DEVICE_NAV||document.documentElement.dataset.production==='v28',{timeout:10000}).catch(()=>{});
     await page.waitForTimeout(500);
+    const visible=await visibleViewport(page);
 
     const rootOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(rootOverflow).toBeLessThanOrEqual(3);
@@ -31,8 +38,8 @@ for (const vp of viewports) {
     for (const selector of ['#newEventButton','#accountButton','#presenceButton','#shareButton']) {
       await expect(page.locator(selector)).toBeVisible();
       const r=await rect(page,selector);
-      expect(r.left).toBeGreaterThanOrEqual(-1);
-      expect(r.right).toBeLessThanOrEqual(vp.width+1);
+      expect(r.left,`${selector} left edge at ${vp.name}`).toBeGreaterThanOrEqual(-1);
+      expect(r.right,`${selector} right edge at ${vp.name}`).toBeLessThanOrEqual(visible.width+1);
     }
 
     await expect(page.locator('#importButton')).toBeVisible();
@@ -48,21 +55,22 @@ for (const vp of viewports) {
     await page.locator('#importButton').click();
     await expect(page.locator('#importModal')).toHaveClass(/open/);
     const modal=await rect(page,'#importModal .modal-card');
-    expect(modal.left).toBeGreaterThanOrEqual(-1);expect(modal.right).toBeLessThanOrEqual(vp.width+1);
-    expect(modal.top).toBeGreaterThanOrEqual(-1);expect(modal.bottom).toBeLessThanOrEqual(vp.height+2);
+    expect(modal.left).toBeGreaterThanOrEqual(-1);expect(modal.right).toBeLessThanOrEqual(visible.width+1);
+    expect(modal.top).toBeGreaterThanOrEqual(-1);expect(modal.bottom).toBeLessThanOrEqual(visible.height+1);
     await page.locator('#importModal .modal-header [data-close-import]').click();
 
     await page.locator('#newEventButton').click();
     await expect(page.locator('#eventDrawer')).toHaveClass(/open/);
     const drawer=await rect(page,'#eventDrawer .drawer-panel');
-    expect(drawer.left).toBeGreaterThanOrEqual(-1);expect(drawer.right).toBeLessThanOrEqual(vp.width+1);
+    expect(drawer.left).toBeGreaterThanOrEqual(-1);expect(drawer.right).toBeLessThanOrEqual(visible.width+1);
+    expect(drawer.top).toBeGreaterThanOrEqual(-1);expect(drawer.bottom).toBeLessThanOrEqual(visible.height+1);
     await page.locator('#eventDrawer .drawer-header [data-close-drawer]').click();
 
     await page.locator('#settingsButton').click();
     await expect(page.locator('#v25SettingsPanel')).toHaveClass(/open/);
     const settings=await rect(page,'#v25SettingsPanel .v25-settings-card');
-    expect(settings.left).toBeGreaterThanOrEqual(-1);expect(settings.right).toBeLessThanOrEqual(vp.width+1);
-    expect(settings.top).toBeGreaterThanOrEqual(-1);expect(settings.bottom).toBeLessThanOrEqual(vp.height+2);
+    expect(settings.left).toBeGreaterThanOrEqual(-1);expect(settings.right).toBeLessThanOrEqual(visible.width+1);
+    expect(settings.top).toBeGreaterThanOrEqual(-1);expect(settings.bottom).toBeLessThanOrEqual(visible.height+1);
     await page.locator('#v25SettingsPanel header [data-v25-settings-close]').click();
 
     await page.locator('.nav-list [data-view="calendar"]').click();
