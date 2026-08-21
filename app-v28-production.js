@@ -5,6 +5,7 @@
   const DB_NAME='msc-production-recovery-v28';
   const STORE='snapshots';
   const MAX_BACKUP_BYTES=1_850_000;
+  const MAX_KEEPALIVE_BYTES=60_000;
   let backupTimer=0, lastStorageWarning=0, dbPromise=null;
 
   window.MSC_PRODUCTION={build:BUILD,startedAt:Date.now(),errors:[],storageHealthy:true};
@@ -107,7 +108,9 @@
       try{const {data}=await supabase?.auth?.getSession?.()||{};const token=data?.session?.access_token;if(token)headers.Authorization=`Bearer ${token}`}catch{}
       const ownerKey=safeGet(`mscBoardOwnerKey:${room}`)||'';if(ownerKey)headers['x-board-owner']=ownerKey;
       const snap=typeof cleanState==='function'?cleanState():state;
-      await fetch(`${SB_URL}/functions/v1/persistent-board?board=${encodeURIComponent(room)}`,{method:'POST',headers,body:JSON.stringify({boardId:room,...(ownerKey?{ownerKey}:{}),snapshot:snap}),cache:'no-store',keepalive:true});
+      const body=JSON.stringify({boardId:room,...(ownerKey?{ownerKey}:{}),snapshot:snap});
+      const keepalive=new Blob([body]).size<=MAX_KEEPALIVE_BYTES;
+      await fetch(`${SB_URL}/functions/v1/persistent-board?board=${encodeURIComponent(room)}`,{method:'POST',headers,body,cache:'no-store',keepalive});
     }catch(err){recordError('cloud-flush',err)}
   }
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){queueRecovery();flushCloud()}});

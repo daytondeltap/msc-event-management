@@ -1,4 +1,4 @@
-name: Cross-device UI smoke
+name: Production browser regression
 
 on:
   push:
@@ -10,9 +10,9 @@ permissions:
   contents: read
 
 jobs:
-  responsive-ui:
+  browser-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,10 +25,33 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Start static app
         run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/msc-http.log 2>&1 &
-          echo $! > /tmp/msc-http.pid
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/gem-http.log 2>&1 &
+          echo $! > /tmp/gem-http.pid
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep 1; done
-          cat /tmp/msc-http.log
+          cat /tmp/gem-http.log
           exit 1
-      - name: Run device smoke tests
+      - name: Run cross-device UI tests
+        id: device
+        continue-on-error: true
         run: npx playwright test tests/device-smoke.spec.js --reporter=line --workers=1
+      - name: Run README feature smoke tests
+        id: features
+        continue-on-error: true
+        run: npx playwright test tests/full-feature-smoke.spec.js --reporter=line --workers=1
+      - name: Run Plan graph and scale tests
+        id: plan_scale
+        continue-on-error: true
+        run: npx playwright test tests/plan-scale-smoke.spec.js --reporter=line --workers=1
+      - name: Run Supabase and OAuth health tests
+        id: backend
+        continue-on-error: true
+        run: npx playwright test tests/backend-health.spec.js --reporter=line --workers=1
+      - name: Fail if any regression suite failed
+        if: always()
+        run: |
+          failed=0
+          [ "${{ steps.device.outcome }}" = "success" ] || failed=1
+          [ "${{ steps.features.outcome }}" = "success" ] || failed=1
+          [ "${{ steps.plan_scale.outcome }}" = "success" ] || failed=1
+          [ "${{ steps.backend.outcome }}" = "success" ] || failed=1
+          exit $failed

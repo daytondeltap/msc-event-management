@@ -1,0 +1,131 @@
+/* generic event manager v31 — regression/stability fixes only */
+
+/* Open application layers must always sit above the adaptive mobile nav. */
+.modal,
+.drawer,
+.v25-settings{
+  z-index:24000!important;
+}
+.v20-node-editor{
+  z-index:24100!important;
+}
+
+@media (max-width:900px){
+  .modal-card,
+  .drawer-panel,
+  .v25-settings-card{
+    box-sizing:border-box!important;
+    max-width:100vw!important;
+  }
+
+  /* visualViewport can be a few CSS pixels shorter than 100dvh on mobile browser chrome/emulation. */
+  .modal-card{
+    max-height:min(var(--msc-vv-height),100vh)!important;
+  }
+
+  .v25-settings-card{
+    inset:0!important;
+    width:100vw!important;
+    height:min(var(--msc-vv-height),100vh)!important;
+    max-height:min(var(--msc-vv-height),100vh)!important;
+    margin:0!important;
+    border-radius:0!important;
+    overflow-x:hidden!important;
+    transform:none!important;
+  }
+
+  .drawer-panel{
+    top:0!important;
+    right:0!important;
+    bottom:auto!important;
+    left:auto!important;
+    height:min(var(--msc-vv-height),100vh)!important;
+    max-height:min(var(--msc-vv-height),100vh)!important;
+    max-width:100vw!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    transform:none!important;
+  }
+
+  /* The bottom navigation remains visible, but cannot steal taps from an open dialog/drawer. */
+  body:has(.modal.open) .sidebar,
+  body:has(.drawer.open) .sidebar,
+  body:has(.v25-settings.open) .sidebar{
+    pointer-events:none!important;
+  }
+
+  .modal.open,
+  .drawer.open,
+  .v25-settings.open{
+    pointer-events:auto!important;
+  }
+
+  .modal-actions,
+  .drawer-actions{
+    box-sizing:border-box!important;
+    max-width:100%!important;
+  }
+
+  .v25-settings-card input,
+  .v25-settings-card select,
+  .v25-settings-card textarea,
+  .modal-card input,
+  .modal-card select,
+  .modal-card textarea,
+  .drawer-panel input,
+  .drawer-panel select,
+  .drawer-panel textarea{
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+}
+
+/* Short landscape phones inherit absolute topbar-actions positioning from the old <=800px layout; neutralize it. */
+@media (max-width:900px) and (max-height:520px) and (orientation:landscape){
+  .topbar{
+    padding-left:max(5px,env(safe-area-inset-left,0px))!important;
+    padding-right:max(5px,env(safe-area-inset-right,0px))!important;
+    gap:4px!important;
+  }
+  .topbar-actions{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    grid-template-columns:minmax(96px,1fr) repeat(4,38px)!important;
+    gap:4px!important;
+  }
+  .search-box{
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+  .account-button,
+  .presence-button,
+  #shareButton,
+  #newEventButton{
+    width:38px!important;
+    min-width:38px!important;
+    max-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+  }
+  .modal{
+    padding:0!important;
+  }
+  .modal-card{
+    margin:0!important;
+    max-height:min(var(--msc-vv-height),100vh)!important;
+  }
+}
+
+/* Keep the actual app usable when the browser uses enlarged/default accessibility text. */
+@media (max-width:420px){
+  .topbar-actions{min-width:0!important}
+  .search-box input{min-width:0!important}
+  .v25-setting-actions,.modal-actions,.drawer-actions,.share-actions{max-width:100%!important}
+}
