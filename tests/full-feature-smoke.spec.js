@@ -122,7 +122,10 @@ test('contacts, presets, options, boards/share launcher and venues remain reacha
   await page.locator('#v25PresetForm [name="name"]').fill('Regression preset');
   await page.locator('#v25PresetForm [name="subject"]').fill('Hello {event_name}');
   await page.locator('#v25PresetForm [name="body"]').fill('Hi {contact_name}');
-  await page.locator('#v25PresetForm [name="recipientTarget"]').selectOption({label:/Regression Contact/});
+  const recipientSelect=page.locator('#v25PresetForm [name="recipientTarget"]');
+  const contactValue=await recipientSelect.locator('option').filter({hasText:'Regression Contact'}).first().getAttribute('value');
+  expect(contactValue).toBeTruthy();
+  await recipientSelect.selectOption(contactValue);
   await page.locator('[data-v25-save-preset]').click();
   await expect(page.locator('#contactsView')).toContainText('Regression preset');
   expect(await page.evaluate(()=>state.emailSettings.presets.some(p=>p.name==='Regression preset'))).toBeTruthy();
@@ -163,7 +166,6 @@ test('contacts, presets, options, boards/share launcher and venues remain reacha
 test('JSON/PDF/large import, export, OSM lookup and Google OAuth initiation are functional', async ({ page }) => {
   const fatal=await cleanPage(page);
 
-  // JSON import preserves event fields.
   await page.locator('#importButton').click();
   const json={events:[{id:'json-regression-1',name:'JSON Regression Event',start:'2026-11-05T09:00:00Z',end:'2026-11-05T10:00:00Z',venue:'JSON Hall',budgetPlanned:777,status:'Ready'}]};
   await page.locator('#calendarFile').setInputFiles({name:'events.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(json))});
@@ -172,20 +174,17 @@ test('JSON/PDF/large import, export, OSM lookup and Google OAuth initiation are 
   await page.waitForFunction(()=>state.events.some(e=>e.name==='JSON Regression Event'));
   expect(await page.evaluate(()=>state.events.find(e=>e.name==='JSON Regression Event')?.budgetPlanned)).toBe(777);
 
-  // Export produces the complete board JSON download.
   const downloadPromise=page.waitForEvent('download');
   await page.locator('#exportButton').click();
   const download=await downloadPromise;
   expect(download.suggestedFilename()).toBe('msc-events.json');
 
-  // Text PDF import goes through the actual PDF.js extraction path.
   const pdfBase64='JVBERi0xLjMKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSCj4+CmVuZG9iagoyIDAgb2JqCjw8Ci9CYXNlRm9udCAvSGVsdmV0aWNhIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMSAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL0NvbnRlbnRzIDcgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCA2IDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago0IDAgb2JqCjw8Ci9QYWdlTW9kZSAvVXNlTm9uZSAvUGFnZXMgNiAwIFIgL1R5cGUgL0NhdGFsb2cKPj4KZW5kb2JqCjUgMCBvYmoKPDwKL0F1dGhvciAoYW5vbnltb3VzKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwODIxMTMxODIyKzAwJzAwJykgL0NyZWF0b3IgKGFub255bW91cykgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwODIxMTMxODIyKzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKHVuc3BlY2lmaWVkKSAvVGl0bGUgKHVudGl0bGVkKSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL0NvdW50IDEgL0tpZHMgWyAzIDAgUiBdIC9UeXBlIC9QYWdlcwo+PgplbmRvYmoKNyAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAxMjEKPj4Kc3RyZWFtCkdhcFFoMEU9RiwwVVxIM1RccE5ZVF5RS2s/dGM+SVAsO1cjVTFeMjNpaFBFTV8/Q1c0S0lTaTwhWzdgI09CX3F1UWRrKkdnbmBGRFRSJVVeLDZLL0hMJSo9ISZnNidgMHNhREwrWEJdKDZqb2VwSkk7SUBvYlowfj5lbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA4CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMDkyIDAwMDAwIG4gCjAwMDAwMDAxOTkgMDAwMDAgbiAKMDAwMDAwMDM5MiAwMDAwMCBuIAowMDAwMDAwNDYwIDAwMDAwIG4gCjAwMDAwMDA3MjEgMDAwMDAgbiAKMDAwMDAwMDc4MCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9JRCAKWzxiMmQ1MmNhNjg1NWNjZjA4MTdjOWRlMmY4ZDgzYzIxNT48YjJkNTJjYTY4NTVjY2YwODE3YzlkZTJmOGQ4M2MyMTU+XQolIFJlcG9ydExhYiBnZW5lcmF0ZWQgUERGIGRvY3VtZW50IC0tIGRpZ2VzdCAob3BlbnNvdXJjZSkKCi9JbmZvIDUgMCBSCi9Sb290IDQgMCBSCi9TaXplIDgKPj4Kc3RhcnR4cmVmCjk5MQolJUVPRgo=';
   await page.locator('#importButton').click();
   await page.locator('#calendarFile').setInputFiles({name:'calendar.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdfBase64,'base64')});
   await expect(page.locator('#importPreview')).toContainText('Winter Fair',{timeout:20000});
-  await page.locator('[data-close-import]').first().click();
+  await page.locator('#importModal .modal-header [data-close-import]').click();
 
-  // 125 ICS events must paginate at the documented 60-row preview size without committing them.
   const parts=['BEGIN:VCALENDAR','VERSION:2.0'];
   for(let i=0;i<125;i++)parts.push('BEGIN:VEVENT',`UID:bulk-${i}`,`DTSTART:202612${String((i%28)+1).padStart(2,'0')}T090000Z`,`SUMMARY:Bulk Event ${i}`,'END:VEVENT');
   parts.push('END:VCALENDAR');
@@ -196,9 +195,8 @@ test('JSON/PDF/large import, export, OSM lookup and Google OAuth initiation are 
   await expect(page.locator('.v21-import-pager')).toContainText('Page 1 of 3');
   await page.locator('[data-v21-page="1"]').click();
   await expect(page.locator('.v21-import-pager')).toContainText('Page 2 of 3');
-  await page.locator('[data-close-import]').first().click();
+  await page.locator('#importModal .modal-header [data-close-import]').click();
 
-  // Lazy OSM loads, and explicit place lookup writes the coordinates into the event form.
   await page.route('**/nominatim.openstreetmap.org/search**',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{lat:'13.7563',lon:'100.5018',display_name:'Regression Hall, Bangkok, Thailand',osm_type:'node',osm_id:12345,place_id:67890}])}));
   await nav(page,'venues');
   await page.waitForFunction(()=>window.MSC_FEATURES?.mapsReady===true,{timeout:20000});
@@ -213,7 +211,6 @@ test('JSON/PDF/large import, export, OSM lookup and Google OAuth initiation are 
   await page.locator('#eventForm button[type="submit"]').click();
   expect(await page.evaluate(()=>state.events.find(e=>e.name==='Mapped Regression Event')?.venuePlaceId)).toContain('osm:node:12345');
 
-  // Exercise the frontend OAuth entry point without leaving the test page.
   await page.evaluate(()=>{
     const original=supabase.auth.signInWithOAuth.bind(supabase.auth);
     window.__v31RestoreOAuth=()=>{supabase.auth.signInWithOAuth=original};
