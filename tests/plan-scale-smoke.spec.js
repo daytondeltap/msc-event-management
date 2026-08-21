@@ -85,8 +85,9 @@ test('300-event boards stay virtualized and paginated across Plan, Events, Statu
 
   await page.locator('.nav-list [data-view="board"]').click();
   await expect(page.locator('#boardView')).toHaveClass(/active/);
-  expect(await page.locator('#boardView .board-card').count()).toBeLessThanOrEqual(50);
-  await expect(page.locator('#boardView')).toContainText('300 events');
+  expect(await page.locator('#boardView .board-card').count()).toBeLessThanOrEqual(250);
+  await expect(page.locator('#boardView .v23-status-pager')).toContainText('Status page 1 of 2');
+  await expect(page.locator('#boardView .v23-status-pager')).toContainText('up to 50 cards per column');
 
   await page.locator('.nav-list [data-view="budget"]').click();
   await expect(page.locator('#budgetView')).toHaveClass(/active/);
