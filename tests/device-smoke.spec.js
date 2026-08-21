@@ -13,6 +13,20 @@ const viewports = [
 async function rect(page, selector){
   return page.locator(selector).evaluate(el=>{const r=el.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height}});
 }
+async function visualBounds(page){
+  return page.evaluate(()=>{
+    const vv=window.visualViewport;
+    const left=vv?.offsetLeft||0,top=vv?.offsetTop||0;
+    const width=vv?.width||window.innerWidth,height=vv?.height||window.innerHeight;
+    return {left,top,right:left+width,bottom:top+height,width,height};
+  });
+}
+function expectInside(r,b,pad=2){
+  expect(r.left).toBeGreaterThanOrEqual(b.left-pad);
+  expect(r.right).toBeLessThanOrEqual(b.right+pad);
+  expect(r.top).toBeGreaterThanOrEqual(b.top-pad);
+  expect(r.bottom).toBeLessThanOrEqual(b.bottom+pad);
+}
 
 for (const vp of viewports) {
   test(`${vp.name}: primary UI remains reachable`, async ({ browser }) => {
@@ -24,6 +38,7 @@ for (const vp of viewports) {
     await page.waitForSelector('#plannerViewport',{timeout:10000});
     await page.waitForFunction(()=>window.MSC_DEVICE_NAV||document.documentElement.dataset.production==='v28',{timeout:10000}).catch(()=>{});
     await page.waitForTimeout(500);
+    const visible=await visualBounds(page);
 
     // Body chrome itself may never be wider than the viewport; intentional table/calendar/status overflow lives inside dedicated scrollers.
     const rootOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
@@ -32,8 +47,8 @@ for (const vp of viewports) {
     for (const selector of ['#newEventButton','#accountButton','#presenceButton','#shareButton']) {
       await expect(page.locator(selector)).toBeVisible();
       const r=await rect(page,selector);
-      expect(r.left).toBeGreaterThanOrEqual(-1);
-      expect(r.right).toBeLessThanOrEqual(vp.width+1);
+      expect(r.left).toBeGreaterThanOrEqual(visible.left-1);
+      expect(r.right).toBeLessThanOrEqual(visible.right+1);
     }
 
     await expect(page.locator('#importButton')).toBeVisible();
@@ -48,28 +63,25 @@ for (const vp of viewports) {
 
     await page.locator('#importButton').click();
     await expect(page.locator('#importModal')).toHaveClass(/open/);
-    const modal=await rect(page,'#importModal .modal-card');
-    expect(modal.left).toBeGreaterThanOrEqual(-1);expect(modal.right).toBeLessThanOrEqual(vp.width+1);
-    expect(modal.top).toBeGreaterThanOrEqual(-1);expect(modal.bottom).toBeLessThanOrEqual(vp.height+2);
+    expectInside(await rect(page,'#importModal .modal-card'),await visualBounds(page));
     await page.locator('[data-close-import]').last().click();
 
     await page.locator('#newEventButton').click();
     await expect(page.locator('#eventDrawer')).toHaveClass(/open/);
     const drawer=await rect(page,'#eventDrawer .drawer-panel');
-    expect(drawer.left).toBeGreaterThanOrEqual(-1);expect(drawer.right).toBeLessThanOrEqual(vp.width+1);
+    const drawerBounds=await visualBounds(page);
+    expect(drawer.left).toBeGreaterThanOrEqual(drawerBounds.left-1);expect(drawer.right).toBeLessThanOrEqual(drawerBounds.right+1);
     await page.locator('[data-close-drawer]').last().click();
 
     await page.locator('#settingsButton').click();
     await expect(page.locator('#v25SettingsPanel')).toHaveClass(/open/);
-    const settings=await rect(page,'#v25SettingsPanel .v25-settings-card');
-    expect(settings.left).toBeGreaterThanOrEqual(-1);expect(settings.right).toBeLessThanOrEqual(vp.width+1);
-    expect(settings.top).toBeGreaterThanOrEqual(-1);expect(settings.bottom).toBeLessThanOrEqual(vp.height+2);
+    expectInside(await rect(page,'#v25SettingsPanel .v25-settings-card'),await visualBounds(page));
     await page.locator('[data-v25-settings-close]').last().click();
 
     // View navigation must work even when the mobile bar is horizontally scrollable.
-    await page.locator('[data-view="calendar"]').click();
+    await page.locator('.nav-list [data-view="calendar"]').click();
     await expect(page.locator('#calendarView')).toHaveClass(/active/);
-    await page.locator('[data-view="plan"]').click();
+    await page.locator('.nav-list [data-view="plan"]').click();
     await expect(page.locator('#planView')).toHaveClass(/active/);
 
     expect(fatal,`Browser errors at ${vp.name}: ${fatal.join('\n')}`).toEqual([]);
