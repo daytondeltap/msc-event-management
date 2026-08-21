@@ -12,7 +12,7 @@ permissions:
 jobs:
   browser-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,6 +38,10 @@ jobs:
         id: features
         continue-on-error: true
         run: npx playwright test tests/full-feature-smoke.spec.js --reporter=line --workers=1
+      - name: Run Plan graph and scale tests
+        id: plan_scale
+        continue-on-error: true
+        run: npx playwright test tests/plan-scale-smoke.spec.js --reporter=line --workers=1
       - name: Run Supabase and OAuth health tests
         id: backend
         continue-on-error: true
@@ -48,5 +52,6 @@ jobs:
           failed=0
           [ "${{ steps.device.outcome }}" = "success" ] || failed=1
           [ "${{ steps.features.outcome }}" = "success" ] || failed=1
+          [ "${{ steps.plan_scale.outcome }}" = "success" ] || failed=1
           [ "${{ steps.backend.outcome }}" = "success" ] || failed=1
           exit $failed
