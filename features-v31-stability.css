@@ -1,6 +1,6 @@
 /* v31 stability: keep full-screen editors above mobile navigation and inside the visual workspace. */
 @media (max-width:900px){
-  .drawer.open,.v25-settings.open{z-index:320!important}
+  .modal.open,.drawer.open,.v25-settings.open{z-index:320!important}
 
   /* Avoid height + padding over-constraint on mobile Chrome/Playwright visual viewports. */
   .v25-settings-card{
