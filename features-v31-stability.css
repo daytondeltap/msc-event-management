@@ -1,0 +1,4 @@
+/* v31 stability: keep full-screen editors above the mobile navigation layer. */
+@media (max-width:900px){
+  .drawer.open{z-index:320!important}
+}
