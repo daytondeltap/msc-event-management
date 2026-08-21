@@ -25,7 +25,6 @@ for (const vp of viewports) {
     await page.waitForFunction(()=>window.MSC_DEVICE_NAV||document.documentElement.dataset.production==='v28',{timeout:10000}).catch(()=>{});
     await page.waitForTimeout(500);
 
-    // Body chrome itself may never be wider than the viewport; intentional table/calendar/status overflow lives inside dedicated scrollers.
     const rootOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(rootOverflow).toBeLessThanOrEqual(3);
 
@@ -51,25 +50,24 @@ for (const vp of viewports) {
     const modal=await rect(page,'#importModal .modal-card');
     expect(modal.left).toBeGreaterThanOrEqual(-1);expect(modal.right).toBeLessThanOrEqual(vp.width+1);
     expect(modal.top).toBeGreaterThanOrEqual(-1);expect(modal.bottom).toBeLessThanOrEqual(vp.height+2);
-    await page.locator('[data-close-import]').last().click();
+    await page.locator('#importModal .modal-header [data-close-import]').click();
 
     await page.locator('#newEventButton').click();
     await expect(page.locator('#eventDrawer')).toHaveClass(/open/);
     const drawer=await rect(page,'#eventDrawer .drawer-panel');
     expect(drawer.left).toBeGreaterThanOrEqual(-1);expect(drawer.right).toBeLessThanOrEqual(vp.width+1);
-    await page.locator('[data-close-drawer]').last().click();
+    await page.locator('#eventDrawer .drawer-header [data-close-drawer]').click();
 
     await page.locator('#settingsButton').click();
     await expect(page.locator('#v25SettingsPanel')).toHaveClass(/open/);
     const settings=await rect(page,'#v25SettingsPanel .v25-settings-card');
     expect(settings.left).toBeGreaterThanOrEqual(-1);expect(settings.right).toBeLessThanOrEqual(vp.width+1);
     expect(settings.top).toBeGreaterThanOrEqual(-1);expect(settings.bottom).toBeLessThanOrEqual(vp.height+2);
-    await page.locator('[data-v25-settings-close]').last().click();
+    await page.locator('#v25SettingsPanel header [data-v25-settings-close]').click();
 
-    // View navigation must work even when the mobile bar is horizontally scrollable.
-    await page.locator('[data-view="calendar"]').click();
+    await page.locator('.nav-list [data-view="calendar"]').click();
     await expect(page.locator('#calendarView')).toHaveClass(/active/);
-    await page.locator('[data-view="plan"]').click();
+    await page.locator('.nav-list [data-view="plan"]').click();
     await expect(page.locator('#planView')).toHaveClass(/active/);
 
     expect(fatal,`Browser errors at ${vp.name}: ${fatal.join('\n')}`).toEqual([]);
