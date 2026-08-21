@@ -46,15 +46,6 @@ for (const vp of viewports) {
     await page.waitForTimeout(500);
     const visible=await visualBounds(page);
 
-    if(vp.name==='phone-landscape'){
-      const geometry=await page.evaluate(()=>{
-        const info=selector=>{const el=document.querySelector(selector);if(!el)return null;const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {rect:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height},position:s.position,left:s.left,right:s.right,width:s.width,paddingLeft:s.paddingLeft,paddingRight:s.paddingRight,marginLeft:s.marginLeft,marginRight:s.marginRight,transform:s.transform}};
-        const vv=visualViewport;
-        return {scrollX,docScrollLeft:document.scrollingElement?.scrollLeft||0,visual:{left:vv?.offsetLeft||0,top:vv?.offsetTop||0,width:vv?.width||innerWidth,height:vv?.height||innerHeight},body:info('body'),app:info('.app-shell'),main:info('.main-shell'),topbar:info('.topbar'),actions:info('.topbar-actions'),newEvent:info('#newEventButton'),account:info('#accountButton'),presence:info('#presenceButton'),share:info('#shareButton')};
-      });
-      console.log('LANDSCAPE_GEOMETRY',JSON.stringify(geometry));
-    }
-
     // Body chrome itself may never be wider than the viewport; intentional table/calendar/status overflow lives inside dedicated scrollers.
     const rootOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(rootOverflow).toBeLessThanOrEqual(3);
