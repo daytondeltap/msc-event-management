@@ -18,17 +18,24 @@
     max-width:100vw!important;
   }
 
+  /* visualViewport can be a few CSS pixels taller than the layout viewport on mobile emulation/URL-bar transitions. */
+  .modal-card{
+    max-height:min(var(--msc-vv-height),100vh)!important;
+  }
+
   .v25-settings-card{
     inset:0!important;
     width:100vw!important;
-    height:var(--msc-vv-height)!important;
-    max-height:var(--msc-vv-height)!important;
+    height:min(var(--msc-vv-height),100vh)!important;
+    max-height:min(var(--msc-vv-height),100vh)!important;
     margin:0!important;
     border-radius:0!important;
     overflow-x:hidden!important;
   }
 
   .drawer-panel{
+    height:min(var(--msc-vv-height),100vh)!important;
+    max-height:min(var(--msc-vv-height),100vh)!important;
     max-width:100vw!important;
     box-sizing:border-box!important;
   }
@@ -75,6 +82,7 @@
   }
   .topbar-actions{
     width:100%!important;
+    max-width:100%!important;
     min-width:0!important;
     grid-template-columns:minmax(96px,1fr) repeat(4,38px)!important;
     gap:4px!important;
