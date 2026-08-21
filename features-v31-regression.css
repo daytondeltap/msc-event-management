@@ -1,0 +1,28 @@
+/* v31 regression-only layout fixes. No feature or visual redesign. */
+@media (max-width:900px){
+  /* App navigation must never intercept an open modal/drawer/settings panel. */
+  .sidebar{z-index:80!important}
+  .modal,.drawer,.v25-settings{z-index:400!important}
+  .modal.open,.drawer.open,.v25-settings.open{pointer-events:auto!important}
+
+  /* Bound full-screen editors to both the visual viewport and the layout viewport. */
+  .modal-card{
+    max-height:min(var(--msc-vv-height),100vh)!important;
+  }
+  .drawer-panel,.v25-settings-card{
+    top:0!important;
+    bottom:auto!important;
+    height:min(var(--msc-vv-height),100vh)!important;
+    max-height:min(var(--msc-vv-height),100vh)!important;
+  }
+  .v25-settings-card{right:0!important;left:auto!important}
+}
+
+@media (max-width:900px) and (max-height:520px) and (orientation:landscape){
+  /* With the title hidden, let the action grid own the full topbar width. */
+  .topbar-actions{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+  }
+}
