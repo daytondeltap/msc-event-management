@@ -1,9 +1,99 @@
+const AUTH_RETURN_KEY = 'mscGoogleOAuthReturnV31';
+const BOARD_OWNER_KEY_PREFIX = 'mscBoardOwnerKey:';
+
+function oauthCallbackUrl() {
+  const url = new URL(location.href);
+  url.search = '';
+  url.hash = '';
+  return url.toString();
+}
+function rememberOAuthReturn() {
+  try {
+    const target = new URL(location.href);
+    target.hash = '';
+    sessionStorage.setItem(AUTH_RETURN_KEY, target.toString());
+  } catch {}
+}
+function restoreOAuthReturn() {
+  let raw = '';
+  try {
+    raw = sessionStorage.getItem(AUTH_RETURN_KEY) || '';
+    sessionStorage.removeItem(AUTH_RETURN_KEY);
+  } catch {}
+  if (!raw) return;
+  try {
+    const target = new URL(raw, location.href);
+    const current = new URL(location.href);
+    target.hash = '';
+    current.hash = '';
+    if (target.origin !== current.origin || target.pathname !== current.pathname) return;
+    if (target.toString() !== current.toString()) location.replace(target.toString());
+  } catch {}
+}
+function wrapGoogleOAuthRedirect() {
+  const original = supabase?.auth?.signInWithOAuth;
+  if (typeof original !== 'function' || original.__mscV31) return;
+  const bound = original.bind(supabase.auth);
+  const wrapped = async args => {
+    if (args?.provider !== 'google') return bound(args);
+    rememberOAuthReturn();
+    const options = { ...(args.options || {}), redirectTo: oauthCallbackUrl() };
+    return bound({ ...args, options });
+  };
+  wrapped.__mscV31 = true;
+  try { supabase.auth.signInWithOAuth = wrapped; } catch (err) { console.warn('Could not wrap Google OAuth redirect', err); }
+}
+function wrapPersistentBoardOwnerKey() {
+  if (window.fetch?.__mscBoardOwnerV31) return;
+  const originalFetch = window.fetch.bind(window);
+  const wrappedFetch = (input, init) => {
+    try {
+      const rawUrl = typeof input === 'string' || input instanceof URL ? String(input) : input?.url;
+      const url = new URL(rawUrl, location.href);
+      const endpoint = new URL(`${SB_URL}/functions/v1/persistent-board`);
+      if (url.origin === endpoint.origin && url.pathname === endpoint.pathname) {
+        const boardId = url.searchParams.get('board') || '';
+        const ownerKey = boardId ? localStorage.getItem(BOARD_OWNER_KEY_PREFIX + boardId) || '' : '';
+        if (ownerKey) {
+          if (typeof Request !== 'undefined' && input instanceof Request) {
+            const request = new Request(input, init);
+            const headers = new Headers(request.headers);
+            if (!headers.has('x-board-owner')) headers.set('x-board-owner', ownerKey);
+            return originalFetch(new Request(request, { headers }));
+          }
+          const next = { ...(init || {}) };
+          const headers = new Headers(next.headers || {});
+          if (!headers.has('x-board-owner')) headers.set('x-board-owner', ownerKey);
+          next.headers = headers;
+          return originalFetch(input, next);
+        }
+      }
+    } catch (err) {
+      console.warn('Board owner request compatibility check failed', err);
+    }
+    return originalFetch(input, init);
+  };
+  wrappedFetch.__mscBoardOwnerV31 = true;
+  window.fetch = wrappedFetch;
+}
+window.MSC_AUTH = window.MSC_AUTH || {};
+window.MSC_AUTH.callbackUrl = oauthCallbackUrl;
+window.MSC_AUTH.restoreReturn = restoreOAuthReturn;
+wrapPersistentBoardOwnerKey();
+
 async function initSupabase() {
   try {
     const mod=await import('https://esm.sh/@supabase/supabase-js@2.111.0');
     supabase=mod.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-    const {data}=await supabase.auth.getSession(); setAuthUser(data.session?.user||null);
-    supabase.auth.onAuthStateChange((_event,session)=>{setAuthUser(session?.user||null); if(room) reconnectRoom();});
+    wrapGoogleOAuthRedirect();
+    const {data}=await supabase.auth.getSession();
+    setAuthUser(data.session?.user||null);
+    if(data.session) restoreOAuthReturn();
+    supabase.auth.onAuthStateChange((_event,session)=>{
+      setAuthUser(session?.user||null);
+      if(session&&(_event==='SIGNED_IN'||_event==='INITIAL_SESSION')) setTimeout(restoreOAuthReturn,0);
+      if(room) reconnectRoom();
+    });
     if(room) connectRoom();
   } catch(err){console.error(err);toast('Online services unavailable — local mode still works');}
 }
@@ -12,17 +102,17 @@ function setAuthUser(user){
 }
 async function signInGoogle(){
   if(!supabase)return toast('Supabase is still connecting');
-  const redirect=new URL(location.href); redirect.hash='';
-  const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:redirect.toString()}});
-  if(error){console.error(error);toast('Google login is not configured yet');$('#authSetupNote').textContent='Google OAuth needs a Web client ID + client secret configured in Supabase Auth, plus this GitHub Pages URL in the redirect allow list.';}
+  wrapGoogleOAuthRedirect();
+  const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:oauthCallbackUrl()}});
+  if(error){console.error(error);toast('Google login could not start');$('#authSetupNote').textContent=`Google OAuth could not start. The Google Cloud redirect URI must be ${SB_URL}/auth/v1/callback and this GitHub Pages app must be allowed in Supabase Auth redirects.`;}
 }
 async function signOut(){if(!supabase)return;await supabase.auth.signOut();toast('Signed out');}
 function accountUI(){
   const label=authUser?(authUser.user_metadata?.full_name||authUser.email||'Account'):'Sign in'; $('#accountLabel').textContent=label;
   $('#accountAvatar').innerHTML=avatarUrl?`<img src="${esc(avatarUrl)}" alt="">`:esc((label||'G').slice(0,1).toUpperCase());
-  $('#accountState').innerHTML=authUser?`<div class="account-profile"><span class="big-avatar">${avatarUrl?`<img src="${esc(avatarUrl)}" alt="">`:esc(label.slice(0,1).toUpperCase())}</span><span><strong>${esc(label)}</strong><small>${esc(authUser.email||'Google account')}</small></span></div>`:`<div class="account-profile"><span class="big-avatar">G</span><span><strong>Not signed in</strong><small>Google login is coded and will activate after the Google OAuth provider is configured in Supabase.</small></span></div>`;
+  $('#accountState').innerHTML=authUser?`<div class="account-profile"><span class="big-avatar">${avatarUrl?`<img src="${esc(avatarUrl)}" alt="">`:esc(label.slice(0,1).toUpperCase())}</span><span><strong>${esc(label)}</strong><small>${esc(authUser.email||'Google account')}</small></span></div>`:`<div class="account-profile"><span class="big-avatar">G</span><span><strong>Not signed in</strong><small>Continue with Google for stable identity, account boards and email settings.</small></span></div>`;
   $('#signOutButton').style.visibility=authUser?'visible':'hidden'; $('#signInGoogleButton').style.display=authUser?'none':'inline-flex';
-  $('#authSetupNote').textContent=authUser?'Signed-in identity is used for live presence and collaboration attribution.':'OAuth setup required: Google Cloud Web client ID + client secret in Supabase Auth. No Google secret belongs in this frontend.';
+  $('#authSetupNote').textContent=authUser?'Signed-in identity is used for live presence, account boards and collaboration attribution.':`If Google rejects the login before returning here, verify the Google Cloud redirect URI is ${SB_URL}/auth/v1/callback.`;
 }
 
 function identityPayload(extra={}){
