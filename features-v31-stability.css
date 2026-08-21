@@ -114,6 +114,13 @@
     height:38px!important;
     min-height:38px!important;
   }
+  .modal{
+    padding:0!important;
+  }
+  .modal-card{
+    margin:0!important;
+    max-height:min(var(--msc-vv-height),100vh)!important;
+  }
 }
 
 /* Keep the actual app usable when the browser uses enlarged/default accessibility text. */
