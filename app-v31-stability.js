@@ -6,6 +6,29 @@
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   let authInitPromise=null;
 
+  /* Some legacy Boards helpers forgot the guest-owner header. Add it centrally without changing request semantics. */
+  if(!window.fetch.__gemOwnerKeyV31){
+    const nativeFetch=window.fetch.bind(window);
+    const wrapped=async(input,init={})=>{
+      try{
+        const raw=typeof input==='string'||input instanceof URL?String(input):String(input?.url||'');
+        const u=new URL(raw,location.href);
+        if(u.pathname.includes('/functions/v1/persistent-board')){
+          const board=u.searchParams.get('board')||'';
+          const ownerKey=board?localStorage.getItem(`mscBoardOwnerKey:${board}`)||'':'';
+          if(ownerKey){
+            const headers=new Headers(init.headers||(input instanceof Request?input.headers:undefined));
+            if(!headers.has('x-board-owner'))headers.set('x-board-owner',ownerKey);
+            init={...init,headers};
+          }
+        }
+      }catch(err){console.warn('Board request owner-key patch skipped',err)}
+      return nativeFetch(input,init);
+    };
+    wrapped.__gemOwnerKeyV31=true;
+    window.fetch=wrapped;
+  }
+
   function authMessage(text,tone=''){
     const note=document.getElementById('authSetupNote');
     if(note){note.textContent=text;note.dataset.tone=tone;}
