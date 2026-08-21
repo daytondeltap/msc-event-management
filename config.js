@@ -1,10 +1,10 @@
 window.MSC_CONFIG = window.MSC_CONFIG || {};
 window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus:"", mii:"" };
 
-/* v30 production safe boot: storage sanitation, resilient styles, adaptive device navigation, branding. */
+/* v31 production safe boot: storage sanitation, resilient styles, adaptive device navigation, branding, stability fixes. */
 (() => {
   'use strict';
-  const BUILD='20260820-brand-v30';
+  const BUILD='20260821-stability-v31';
   window.MSC_BOOT_STATE={phase:'core-ready',safeMode:true,errors:[],build:BUILD};
 
   // Branding only. Internal MSC_* runtime names intentionally stay unchanged.
