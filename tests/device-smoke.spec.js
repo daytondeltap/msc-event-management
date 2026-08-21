@@ -21,6 +21,12 @@ async function visualBounds(page){
     return {left,top,right:left+width,bottom:top+height,width,height};
   });
 }
+async function waitForAnimations(page, selector){
+  await page.locator(selector).evaluate(async el=>{
+    const animations=el.getAnimations?.()||[];
+    await Promise.all(animations.map(a=>a.finished.catch(()=>{})));
+  });
+}
 function expectInside(r,b,pad=2){
   expect(r.left).toBeGreaterThanOrEqual(b.left-pad);
   expect(r.right).toBeLessThanOrEqual(b.right+pad);
@@ -75,6 +81,7 @@ for (const vp of viewports) {
 
     await page.locator('#settingsButton').click();
     await expect(page.locator('#v25SettingsPanel')).toHaveClass(/open/);
+    await waitForAnimations(page,'#v25SettingsPanel .v25-settings-card');
     expectInside(await rect(page,'#v25SettingsPanel .v25-settings-card'),await visualBounds(page));
     await page.locator('[data-v25-settings-close]').last().click();
 
