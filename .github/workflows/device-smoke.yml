@@ -1,4 +1,4 @@
-name: Cross-device UI smoke
+name: Production browser regression
 
 on:
   push:
@@ -10,9 +10,9 @@ permissions:
   contents: read
 
 jobs:
-  responsive-ui:
+  browser-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,10 +25,14 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Start static app
         run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/msc-http.log 2>&1 &
-          echo $! > /tmp/msc-http.pid
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/gem-http.log 2>&1 &
+          echo $! > /tmp/gem-http.pid
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep 1; done
-          cat /tmp/msc-http.log
+          cat /tmp/gem-http.log
           exit 1
-      - name: Run device smoke tests
+      - name: Run cross-device UI tests
         run: npx playwright test tests/device-smoke.spec.js --reporter=line --workers=1
+      - name: Run README feature smoke tests
+        run: npx playwright test tests/full-feature-smoke.spec.js --reporter=line --workers=1
+      - name: Run Supabase and OAuth health tests
+        run: npx playwright test tests/backend-health.spec.js --reporter=line --workers=1
