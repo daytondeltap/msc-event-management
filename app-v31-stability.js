@@ -46,19 +46,52 @@
     return new URL(location.pathname,location.origin).toString();
   }
 
+  async function importSupabaseFallback(){
+    let lastError=null;
+    for(const src of [
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/+esm',
+      'https://esm.run/@supabase/supabase-js@2.111.0'
+    ]){
+      try{
+        const mod=await Promise.race([
+          import(src),
+          new Promise((_,reject)=>setTimeout(()=>reject(new Error(`timeout:${src}`)),6500))
+        ]);
+        if(mod?.createClient)return mod;
+      }catch(err){lastError=err}
+    }
+    throw lastError||new Error('Supabase client library unavailable');
+  }
+
+  async function makeFallbackClient(){
+    const mod=await importSupabaseFallback();
+    const client=mod.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    supabase=client;
+    const {data}=await client.auth.getSession();
+    try{setAuthUser(data.session?.user||null)}catch{}
+    client.auth.onAuthStateChange((_event,session)=>{
+      try{setAuthUser(session?.user||null)}catch{}
+      try{if(room)reconnectRoom()}catch{}
+    });
+    try{if(room&&!channel)connectRoom()}catch{}
+    return client;
+  }
+
   async function ensureSupabaseReady(){
-    if(window.supabase||typeof supabase!=='undefined'&&supabase)return typeof supabase!=='undefined'?supabase:window.supabase;
+    if(typeof supabase!=='undefined'&&supabase)return supabase;
     if(authInitPromise)return authInitPromise;
     authInitPromise=(async()=>{
-      /* app-bind starts Supabase during normal startup. Give that request time to finish before retrying it. */
-      for(let i=0;i<35;i++){
+      /* app-bind starts Supabase during normal startup. Give that request time to finish before retrying. */
+      for(let i=0;i<20;i++){
         if(typeof supabase!=='undefined'&&supabase)return supabase;
         await sleep(100);
       }
       if(typeof initSupabase==='function'){
-        try{await initSupabase()}catch(err){console.warn('Supabase retry failed',err)}
+        try{await initSupabase()}catch(err){console.warn('Primary Supabase retry failed',err)}
       }
-      return typeof supabase!=='undefined'?supabase:null;
+      if(typeof supabase!=='undefined'&&supabase)return supabase;
+      /* Some school/network filters block esm.sh. Fall back to independent ESM CDNs before declaring sign-in unavailable. */
+      return makeFallbackClient();
     })().finally(()=>{authInitPromise=null});
     return authInitPromise;
   }
@@ -83,7 +116,9 @@
       const message=String(err?.message||err||'Google sign-in failed');
       authMessage(`Google sign-in failed: ${message}`,'error');
       try{toast('Google sign-in failed — see the account panel for details')}catch{}
-      if(button){button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=oldText;}
+      try{sessionStorage.removeItem(AUTH_RETURN_KEY)}catch{}
+    }finally{
+      if(button&&document.body.contains(button)){button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=oldText;}
     }
   }
 
@@ -107,7 +142,7 @@
       stateBox.innerHTML='<div class="account-profile"><span class="big-avatar">G</span><span><strong>Not signed in</strong><small>Continue with Google to sync identity, boards and collaboration across devices.</small></span></div>';
     }
     const note=document.getElementById('authSetupNote');
-    if(note&&!note.dataset.tone)note.textContent='Google sign-in is handled by Supabase. If Google rejects an account, this panel will show the returned error.';
+    if(note&&!note.dataset.tone)note.textContent='Google sign-in is available. If Google rejects an account, this panel will show the returned error.';
   }
 
   function bindAuthButtons(){
@@ -183,6 +218,7 @@
   }
 
   document.addEventListener('pointercancel',cancelPointerInteraction,true);
+  document.addEventListener('lostpointercapture',cancelPointerInteraction,true);
   window.addEventListener('blur',cancelPointerInteraction);
   document.addEventListener('dragend',()=>{try{if(typeof boardDrag!=='undefined')boardDrag=''}catch{}},true);
 
