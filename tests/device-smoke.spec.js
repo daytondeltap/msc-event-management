@@ -69,6 +69,7 @@ for (const vp of viewports) {
 
     await page.locator('#importButton').click();
     await expect(page.locator('#importModal')).toHaveClass(/open/);
+    await waitForAnimations(page,'#importModal .modal-card');
     expectInside(await rect(page,'#importModal .modal-card'),await visualBounds(page));
     await page.locator('[data-close-import]').last().click();
 
