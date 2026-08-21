@@ -2,11 +2,16 @@ const { test, expect } = require('@playwright/test');
 
 const APP = 'http://127.0.0.1:4173/';
 
+async function waitForProduction(page) {
+  await page.waitForFunction(() => window.MSC_BOOT_STATE?.phase === 'production-ready' || document.documentElement.dataset.production === 'v28', { timeout: 10000 });
+}
+
 test('event logistics and budget values persist and render', async ({ page }) => {
   const errors = [];
   page.on('pageerror', err => errors.push(String(err)));
   await page.goto(`${APP}?feature-smoke=event`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#plannerViewport');
+  await waitForProduction(page);
 
   await page.locator('#newEventButton').click();
   await page.locator('#eventForm [name="name"]').fill('Feature Smoke Event');
@@ -18,7 +23,12 @@ test('event logistics and budget values persist and render', async ({ page }) =>
   await page.locator('#eventForm [name="approvalRequired"]').selectOption('true');
   await page.locator('#eventForm [name="approvalStatus"]').selectOption({ label: 'Awaiting approval' });
   await page.locator('#eventForm button[type="submit"]').click();
+  await expect(page.locator('#eventDrawer')).not.toHaveClass(/open/);
 
+  await page.waitForFunction(() => {
+    const state = JSON.parse(localStorage.getItem('msc-event-management-v6') || '{}');
+    return !!state.events?.find(e => e.name === 'Feature Smoke Event');
+  }, { timeout: 5000 });
   const saved = await page.evaluate(() => {
     const state = JSON.parse(localStorage.getItem('msc-event-management-v6') || '{}');
     return state.events?.find(e => e.name === 'Feature Smoke Event') || null;
