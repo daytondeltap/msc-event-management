@@ -122,7 +122,7 @@ test('mobile navigation keeps primary pages fixed and puts secondary tools in Mo
   await expect(page.locator('#mobileMoreGrid')).toContainText('Venues');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Import');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Export');
-  await expect(page.locator('#mobileMoreGrid')).toContainText('Settings');
+  await expect(page.locator('#mobileMoreGrid')).toContainText('Options');
 
   await page.locator('#mobileMoreGrid [data-view="calendar"]').click();
   await expect(page.locator('#calendarView')).toHaveClass(/active/);
