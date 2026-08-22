@@ -8,6 +8,7 @@
   function reassert(){try{window.MSC_V24_PAGE?.reassert?.()}catch(err){console.warn('MSC v25 page reassert failed',err)}}
   function ensureBoardsLauncher(){if(document.querySelector('[data-view="boards"]'))return;const nav=document.querySelector('.nav-list'),first=nav?.querySelector('[data-view="home"]');if(!nav)return;const b=document.createElement('button');b.className='nav-item';b.dataset.view='boards';b.innerHTML='<span>▦</span><b>Boards</b>';first?first.insertAdjacentElement('afterend',b):nav.appendChild(b)}
   function patchBoardButtons(){document.querySelectorAll('[data-board-rename]').forEach(b=>{b.dataset.v11Rename=b.dataset.boardRename;b.removeAttribute('data-board-rename')})}
+  function closeMobileMore(){const sheet=document.getElementById('mobileMoreSheet');sheet?.classList.remove('open');sheet?.setAttribute('aria-hidden','true');document.body.classList.remove('mobile-more-open')}
   async function loadWorkspace(){
     if(F.workspaceReady)return true;
     if(workspacePromise)return workspacePromise;
@@ -47,7 +48,7 @@
   F.loadWorkspace=loadWorkspace;F.loadMaps=loadMaps;window.MSC_LOAD_MAPS=loadMaps;ensureBoardsLauncher();
   document.addEventListener('click',async e=>{
     const boards=e.target.closest?.('[data-view="boards"]');
-    if(boards&&!F.workspaceReady){e.preventDefault();e.stopImmediatePropagation();const ok=await loadWorkspace();if(ok&&F.workspaceReady){setView('boards');patchBoardButtons()}return}
+    if(boards&&!F.workspaceReady){e.preventDefault();e.stopImmediatePropagation();const ok=await loadWorkspace();if(ok&&F.workspaceReady){setView('boards');patchBoardButtons();closeMobileMore()}return}
     if(e.target.closest?.('#shareButton')&&!F.workspaceReady){e.preventDefault();e.stopImmediatePropagation();const ok=await loadWorkspace();if(ok&&F.workspaceReady)document.getElementById('shareButton')?.click();return}
     if(e.target.closest?.('[data-view="venues"]')&&!F.mapsReady)setTimeout(loadMaps,0)
   },true);
