@@ -1,10 +1,10 @@
 window.MSC_CONFIG = window.MSC_CONFIG || {};
 window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus:"", mii:"" };
 
-/* v30 production safe boot: storage sanitation, resilient styles, adaptive device navigation, branding. */
+/* v32 production safe boot: storage sanitation, resilient styles, adaptive device navigation, branding, stability, and mobile/budget QoL. */
 (() => {
   'use strict';
-  const BUILD='20260820-brand-v30';
+  const BUILD='20260822-qol-v32';
   window.MSC_BOOT_STATE={phase:'core-ready',safeMode:true,errors:[],build:BUILD};
 
   // Branding only. Internal MSC_* runtime names intentionally stay unchanged.
@@ -49,7 +49,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus
   const addStyle=href=>{const base=href.split('?')[0];if([...document.styleSheets].some(s=>s.href&&s.href.includes(base)))return;const l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l)};
   [
     'features-v7.css','features-osm.css','features-v8.css','features-v9.css','features-v10.css','features-v11.css','features-v12.css','features-v13.css',
-    `features-v14.css?v=${BUILD}`,`features-v15.css?v=${BUILD}`,`features-v16.css?v=${BUILD}`,`features-v17.css?v=${BUILD}`,`features-v18.css?v=${BUILD}`,`features-v19.css?v=${BUILD}`,`features-v20.css?v=${BUILD}`,`features-v21.css?v=${BUILD}`,`features-v23.css?v=${BUILD}`,`features-v25.css?v=${BUILD}`,`features-v28-production.css?v=${BUILD}`,`features-v29-device.css?v=${BUILD}`,`features-v30-brand.css?v=${BUILD}`
+    `features-v14.css?v=${BUILD}`,`features-v15.css?v=${BUILD}`,`features-v16.css?v=${BUILD}`,`features-v17.css?v=${BUILD}`,`features-v18.css?v=${BUILD}`,`features-v19.css?v=${BUILD}`,`features-v20.css?v=${BUILD}`,`features-v21.css?v=${BUILD}`,`features-v23.css?v=${BUILD}`,`features-v25.css?v=${BUILD}`,`features-v28-production.css?v=${BUILD}`,`features-v29-device.css?v=${BUILD}`,`features-v30-brand.css?v=${BUILD}`,`features-v31-stability.css?v=${BUILD}`,`features-v32-qol.css?v=${BUILD}`
   ].forEach(addStyle);
 
   // Apply the saved appearance without loading the old UI enhancement stack.
@@ -68,8 +68,11 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus
       const s=document.createElement('script');s.src=src;s.setAttribute(marker,'1');s.async=false;
       s.onload=()=>resolve();s.onerror=()=>{console.error(`Production module failed to load: ${src}`);resolve()};document.body.appendChild(s);
     });
-    loadScript(`app-v28-production.js?v=${BUILD}`,'data-msc-production').then(()=>loadScript(`app-v29-device-nav.js?v=${BUILD}`,'data-msc-device-nav')).then(()=>{
-      window.MSC_BOOT_STATE={...(window.MSC_BOOT_STATE||{}),phase:'production-ready',safeMode:false,build:BUILD};
-    });
+    loadScript(`app-v28-production.js?v=${BUILD}`,'data-msc-production')
+      .then(()=>loadScript(`app-v29-device-nav.js?v=${BUILD}`,'data-msc-device-nav'))
+      .then(()=>loadScript(`app-v32-budget-qol.js?v=${BUILD}`,'data-msc-qol'))
+      .then(()=>{
+        window.MSC_BOOT_STATE={...(window.MSC_BOOT_STATE||{}),phase:'production-ready',safeMode:false,build:BUILD};
+      });
   },{once:true});
 })();

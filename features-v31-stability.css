@@ -1,0 +1,35 @@
+/* v31 stability: keep full-screen editors above mobile navigation and inside the visual workspace. */
+@media (max-width:900px){
+  .modal.open,.drawer.open,.v25-settings.open{z-index:320!important}
+
+  /* Avoid height + padding over-constraint on mobile Chrome/Playwright visual viewports. */
+  .v25-settings-card{
+    inset:0!important;
+    right:0!important;
+    bottom:0!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    box-sizing:border-box!important;
+    overflow:auto!important;
+  }
+}
+
+@media (max-width:900px) and (max-height:520px) and (orientation:landscape){
+  /* Keep the compact topbar strictly inside narrow landscape visual viewports. */
+  .topbar{width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden!important;box-sizing:border-box!important}
+  .topbar-actions{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    grid-template-columns:minmax(0,1fr) repeat(4,40px)!important;
+    box-sizing:border-box!important;
+  }
+  .topbar-actions>*{min-width:0!important;max-width:100%!important}
+  .search-box{width:auto!important;min-width:0!important;max-width:100%!important}
+  .account-button,.presence-button,#shareButton,#newEventButton{width:40px!important;min-width:40px!important;max-width:40px!important}
+}
