@@ -82,13 +82,13 @@ const meta = {
   board:['Status','Move events through the MSC workflow.'],
   calendar:['Calendar','School dates and council events together.'],
   venues:['Venues','Map venues, usage and conflicts.'],
-  budget:['Budget','Planned and actual event spending.']
+  budget:['Budget','Plan funds, calculate costs and track money in and out.']
 };
 
 function storageKey() { return room ? `${STORAGE}:room:${room}` : STORAGE; }
 function loadState() {
   try { const x = JSON.parse(localStorage.getItem(storageKey())); if (x?.events) return x; } catch {}
-  return {events: room ? [] : seed(), annualBudget:100000, zoom:1, version:1};
+  return {events: room ? [] : seed(), annualBudget:100000, budgetLedger:[], zoom:1, version:1};
 }
 function normalize() {
   state.events = (state.events || []).map((e,i) => ({
@@ -98,8 +98,19 @@ function normalize() {
     dependencies: Array.isArray(e.dependencies) ? e.dependencies : split(e.dependencies),
     position: e.position || {x:700+(i%5)*410,y:470+Math.floor(i/5)*250}
   }));
+  state.annualBudget=Math.max(0,+state.annualBudget||0);
+  state.budgetLedger=(Array.isArray(state.budgetLedger)?state.budgetLedger:[]).map(x=>({
+    id:String(x?.id||uid()),
+    type:x?.type==='income'?'income':'expense',
+    amount:Math.max(0,+x?.amount||0),
+    date:String(x?.date||''),
+    category:String(x?.category||''),
+    note:String(x?.note||''),
+    eventId:String(x?.eventId||''),
+    createdAt:+x?.createdAt||Date.now()
+  })).filter(x=>x.amount>0);
 }
-function cleanState() { return {events:state.events, annualBudget:state.annualBudget, zoom, version:(state.version||1)+1, updatedAt:Date.now()}; }
+function cleanState() { return {events:state.events, annualBudget:state.annualBudget, budgetLedger:state.budgetLedger||[], zoom, version:(state.version||1)+1, updatedAt:Date.now()}; }
 function save(sync = true) {
   state.zoom = zoom;
   state.version = (state.version || 1) + 1;
@@ -122,6 +133,16 @@ function issues(e) {
   if (+e.budgetActual > +e.budgetPlanned && +e.budgetPlanned) out.push('Over budget');
   if (state.events.some(o=>o.id!==e.id && o.venue && e.venue && o.venue.toLowerCase()===e.venue.toLowerCase() && overlap(e,o))) out.push('Venue conflict');
   return out;
+}
+function budgetSnapshot() {
+  const ledger=state.budgetLedger||[];
+  const income=ledger.filter(x=>x.type==='income').reduce((s,x)=>s+(+x.amount||0),0);
+  const unlinkedExpenses=ledger.filter(x=>x.type==='expense'&&!x.eventId).reduce((s,x)=>s+(+x.amount||0),0);
+  const ledgerExpenses=ledger.filter(x=>x.type==='expense').reduce((s,x)=>s+(+x.amount||0),0);
+  const eventActual=state.events.reduce((s,e)=>s+(+e.budgetActual||0),0);
+  const planned=state.events.reduce((s,e)=>s+(+e.budgetPlanned||0),0);
+  const trackedSpend=eventActual+unlinkedExpenses;
+  return {income,unlinkedExpenses,ledgerExpenses,eventActual,planned,trackedSpend,available:(+state.annualBudget||0)+income-trackedSpend};
 }
 function visible() {
   const q = search.trim().toLowerCase();
@@ -146,9 +167,9 @@ function render() {
 }
 function metric(label,value,foot) { return `<div class="metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-foot">${foot}</div></div>`; }
 function table(ev) {
-  return `<div class="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Lead</th><th>Status</th><th>Approval</th><th>Venue</th></tr></thead><tbody>${ev.map(e=>`<tr data-open-event="${e.id}"><td><strong>${esc(e.name||'Untitled')}</strong></td><td>${fmtDate(e.start)}</td><td>${esc(e.lead||'—')}</td><td><span class="status-pill">${esc(e.status)}</span></td><td>${approvalLabel(e.approvalStatus)}</td><td>${esc(e.venue||'—')}</td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Lead</th><th>Status</th><th>Approval</th><th>Venue</th></tr></thead><tbody>${ev.map(e=>`<tr data-open-event="${e.id}"><td data-label="Event"><strong>${esc(e.name||'Untitled')}</strong></td><td data-label="Date">${fmtDate(e.start)}</td><td data-label="Lead">${esc(e.lead||'—')}</td><td data-label="Status"><span class="status-pill">${esc(e.status)}</span></td><td data-label="Approval">${approvalLabel(e.approvalStatus)}</td><td data-label="Venue">${esc(e.venue||'—')}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function home() {
-  const ev=visible(), active=ev.filter(e=>e.status!=='Completed'), spent=ev.reduce((s,e)=>s+(+e.budgetActual||0),0), att=ev.flatMap(e=>issues(e).map(i=>[e,i])).slice(0,8);
-  $('#homeView').innerHTML=`<div class="content"><div class="metrics">${metric('Active events',active.length,`${ev.length} total`)}${metric('Awaiting approval',ev.filter(e=>e.approvalStatus==='Awaiting approval'||e.status==='Awaiting approval').length,'Needs follow-up')}${metric('Ready',ev.filter(e=>e.status==='Ready').length,'Cleared to run')}${metric('Actual spend',money(spent),`${money(Math.max(0,state.annualBudget-spent))} remaining`)}</div><div class="grid-two"><div class="panel"><div class="panel-header"><div><h2>Upcoming</h2><p>Next events by date.</p></div></div>${table([...active].sort((a,b)=>new Date(a.start||'9999')-new Date(b.start||'9999')).slice(0,7))}</div><div class="panel"><div class="panel-header"><div><h2>Needs attention</h2><p>Deadlines, approvals and conflicts.</p></div></div>${att.length?att.map(([e,i])=>`<div class="import-row" data-open-event="${e.id}"><strong>${esc(e.name)}</strong><span style="margin-left:auto;color:#777">${esc(i)}</span></div>`).join(''):'<div class="empty-state">Everything looks clear.</div>'}</div></div></div>`;
+  const ev=visible(), active=ev.filter(e=>e.status!=='Completed'), moneyState=budgetSnapshot(), spent=moneyState.trackedSpend, att=ev.flatMap(e=>issues(e).map(i=>[e,i])).slice(0,8);
+  $('#homeView').innerHTML=`<div class="content"><div class="metrics">${metric('Active events',active.length,`${ev.length} total`)}${metric('Awaiting approval',ev.filter(e=>e.approvalStatus==='Awaiting approval'||e.status==='Awaiting approval').length,'Needs follow-up')}${metric('Ready',ev.filter(e=>e.status==='Ready').length,'Cleared to run')}${metric('Tracked spend',money(spent),`${money(moneyState.available)} available`)}</div><div class="grid-two"><div class="panel"><div class="panel-header"><div><h2>Upcoming</h2><p>Next events by date.</p></div></div>${table([...active].sort((a,b)=>new Date(a.start||'9999')-new Date(b.start||'9999')).slice(0,7))}</div><div class="panel"><div class="panel-header"><div><h2>Needs attention</h2><p>Deadlines, approvals and conflicts.</p></div></div>${att.length?att.map(([e,i])=>`<div class="import-row" data-open-event="${e.id}"><strong>${esc(e.name)}</strong><span style="margin-left:auto;color:#777">${esc(i)}</span></div>`).join(''):'<div class="empty-state">Everything looks clear.</div>'}</div></div></div>`;
 }
