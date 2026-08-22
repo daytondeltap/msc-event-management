@@ -61,8 +61,9 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus
     window.addEventListener('DOMContentLoaded',()=>document.body?.setAttribute('data-theme',resolved),{once:true});
   } catch {}
 
-  // Production guards load only after the core stack has defined its globals.
-  window.addEventListener('load',()=>{
+  // Core scripts are synchronous and appear after config.js in index.html, so DOMContentLoaded is the earliest safe point
+  // to attach production guards. This avoids waiting for images/CDN assets before mobile navigation and Budget become usable.
+  const startProductionModules=()=>{
     const loadScript=(src,marker)=>new Promise(resolve=>{
       if(document.querySelector(`script[${marker}]`)){resolve();return}
       const s=document.createElement('script');s.src=src;s.setAttribute(marker,'1');s.async=false;
@@ -74,5 +75,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus
       .then(()=>{
         window.MSC_BOOT_STATE={...(window.MSC_BOOT_STATE||{}),phase:'production-ready',safeMode:false,build:BUILD};
       });
-  },{once:true});
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',startProductionModules,{once:true});
+  else queueMicrotask(startProductionModules);
 })();
