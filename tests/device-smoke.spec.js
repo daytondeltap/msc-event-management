@@ -36,17 +36,17 @@ function expectInside(r,b,pad=2){
 
 for (const vp of viewports) {
   test(`${vp.name}: primary UI remains reachable`, async ({ browser }) => {
-    const context = await browser.newContext({ viewport:{width:vp.width,height:vp.height}, hasTouch:vp.touch, isMobile:vp.width<=900 });
+    const mobile=vp.width<=900;
+    const context = await browser.newContext({ viewport:{width:vp.width,height:vp.height}, hasTouch:vp.touch, isMobile:mobile });
     const page = await context.newPage();
     const fatal=[];
     page.on('pageerror',err=>fatal.push(String(err)));
     await page.goto('http://127.0.0.1:4173/?device-smoke=1',{waitUntil:'domcontentloaded'});
     await page.waitForSelector('#plannerViewport',{timeout:10000});
-    await page.waitForFunction(()=>window.MSC_DEVICE_NAV||document.documentElement.dataset.production==='v28',{timeout:10000}).catch(()=>{});
+    await page.waitForFunction(()=>window.MSC_BUDGET_QOL||window.MSC_DEVICE_NAV||document.documentElement.dataset.production==='v28',{timeout:10000}).catch(()=>{});
     await page.waitForTimeout(500);
     const visible=await visualBounds(page);
 
-    // Body chrome itself may never be wider than the viewport; intentional table/calendar/status overflow lives inside dedicated scrollers.
     const rootOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(rootOverflow).toBeLessThanOrEqual(3);
 
@@ -57,17 +57,24 @@ for (const vp of viewports) {
       expect(r.right).toBeLessThanOrEqual(visible.right+1);
     }
 
-    await expect(page.locator('#importButton')).toBeVisible();
-    await expect(page.locator('#exportButton')).toBeVisible();
-    await expect(page.locator('#settingsButton')).toBeVisible();
-
-    if(vp.width<=900){
+    if(mobile){
+      await expect(page.locator('#mobileMoreButton')).toBeVisible();
+      const visibleLabels=await page.locator('.nav-list > .nav-item').evaluateAll(els=>els.filter(el=>getComputedStyle(el).display!=='none').map(el=>el.querySelector('b')?.textContent?.trim()));
+      expect(visibleLabels).toEqual(['Overview','Plan','Events','Status','Budget','More']);
       expect(await page.locator('#importButton').evaluate(el=>el.parentElement?.classList.contains('nav-list'))).toBeTruthy();
       expect(await page.locator('#exportButton').evaluate(el=>el.parentElement?.classList.contains('nav-list'))).toBeTruthy();
       expect(await page.locator('#settingsButton').evaluate(el=>el.parentElement?.classList.contains('nav-list'))).toBeTruthy();
+    }else{
+      await expect(page.locator('#importButton')).toBeVisible();
+      await expect(page.locator('#exportButton')).toBeVisible();
+      await expect(page.locator('#settingsButton')).toBeVisible();
     }
 
-    await page.locator('#importButton').click();
+    if(mobile){
+      await page.locator('#mobileMoreButton').click();
+      await expect(page.locator('#mobileMoreSheet')).toHaveClass(/open/);
+      await page.locator('#mobileMoreGrid [data-mobile-proxy="importButton"]').click();
+    }else await page.locator('#importButton').click();
     await expect(page.locator('#importModal')).toHaveClass(/open/);
     await waitForAnimations(page,'#importModal .modal-card');
     expectInside(await rect(page,'#importModal .modal-card'),await visualBounds(page));
@@ -80,14 +87,20 @@ for (const vp of viewports) {
     expect(drawer.left).toBeGreaterThanOrEqual(drawerBounds.left-1);expect(drawer.right).toBeLessThanOrEqual(drawerBounds.right+1);
     await page.locator('[data-close-drawer]').last().click();
 
-    await page.locator('#settingsButton').click();
+    if(mobile){
+      await page.locator('#mobileMoreButton').click();
+      await page.locator('#mobileMoreGrid [data-mobile-proxy="settingsButton"]').click();
+    }else await page.locator('#settingsButton').click();
     await expect(page.locator('#v25SettingsPanel')).toHaveClass(/open/);
     await waitForAnimations(page,'#v25SettingsPanel .v25-settings-card');
     expectInside(await rect(page,'#v25SettingsPanel .v25-settings-card'),await visualBounds(page));
     await page.locator('[data-v25-settings-close]').last().click();
 
-    // View navigation must work even when the mobile bar is horizontally scrollable.
-    await page.locator('.nav-list [data-view="calendar"]').click();
+    if(mobile){
+      await page.locator('#mobileMoreButton').click();
+      await page.locator('#mobileMoreGrid [data-view="calendar"]').click();
+      await expect(page.locator('#mobileMoreSheet')).not.toHaveClass(/open/);
+    }else await page.locator('.nav-list [data-view="calendar"]').click();
     await expect(page.locator('#calendarView')).toHaveClass(/active/);
     await page.locator('.nav-list [data-view="plan"]').click();
     await expect(page.locator('#planView')).toHaveClass(/active/);
