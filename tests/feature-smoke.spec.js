@@ -118,12 +118,22 @@ test('mobile navigation keeps primary pages fixed and puts secondary tools in Mo
 
   await page.locator('#mobileMoreButton').click();
   await expect(page.locator('#mobileMoreSheet')).toHaveClass(/open/);
+  await expect(page.locator('#mobileMoreGrid')).toContainText('Boards');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Calendar');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Venues');
+  await expect(page.locator('#mobileMoreGrid')).toContainText('Contacts');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Import');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Export');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Options');
 
+  // First tap must lazy-load Boards and dismiss the More sheet once the workspace is ready.
+  await page.locator('#mobileMoreGrid [data-view="boards"]').click();
+  await expect(page.locator('#boardsView')).toHaveClass(/active/, {timeout:10000});
+  await expect(page.locator('#mobileMoreSheet')).not.toHaveClass(/open/);
+  await page.locator('.nav-list [data-view="plan"]').click();
+  await expect(page.locator('#planView')).toHaveClass(/active/);
+
+  await page.locator('#mobileMoreButton').click();
   await page.locator('#mobileMoreGrid [data-view="calendar"]').click();
   await expect(page.locator('#calendarView')).toHaveClass(/active/);
   await expect(page.locator('#mobileMoreSheet')).not.toHaveClass(/open/);
