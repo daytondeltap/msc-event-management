@@ -41,7 +41,7 @@
       modal.innerHTML = `<div class="modal-backdrop" data-close-board-create></div>
         <section class="modal-card board-create-card" role="dialog" aria-modal="true">
           <div class="modal-header">
-            <div><div class="eyebrow">New workspace</div><h2>Create board</h2><p>Events, plans, venues, contacts and history stay together.</p></div>
+            <div><div class="eyebrow">New workspace</div><h2>Create board</h2><p>Events, plans, venues, contacts, budgets and history stay together.</p></div>
             <button class="icon-button" data-close-board-create>×</button>
           </div>
           <form id="boardCreateForm" class="board-create-form">
@@ -230,7 +230,7 @@
     const items = mergedBoards();
     root.innerHTML = `<div class="boards-shell">
       <div class="boards-hero">
-        <div><div class="eyebrow">Workspaces</div><h2>Your boards</h2><p>Each board keeps its full plan, calendar, venues, contacts, connections and recovery history together.</p></div>
+        <div><div class="eyebrow">Workspaces</div><h2>Your boards</h2><p>Each board keeps its full plan, calendar, venues, contacts, budget ledger, connections and recovery history together.</p></div>
         <button class="button primary boards-new-button" id="createBoardButton">＋ New board</button>
       </div>
       <div class="boards-info-strip">
