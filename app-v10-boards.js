@@ -247,6 +247,7 @@
     return {
       events: [],
       annualBudget: 100000,
+      budgetLedger: [],
       zoom: 1,
       version: 1,
       boardTitle: title,
@@ -524,60 +525,67 @@
     baseSetView(v, announce);
   };
 
-  const baseSetAuthUser = setAuthUser;
-  setAuthUser = function(user) {
-    baseSetAuthUser(user);
-    if (user) {
-      if (room) rememberCurrentInAccount();
-      loadLibrary();
-    } else {
-      cloudBoards = [];
-      renderBoards();
+  async function refreshCurrentFromServer() {
+    if (!room) return;
+    try {
+      const data = await persistentRequest('GET', room);
+      if (data.found && data.snapshot) {
+        const remote = { ...data.snapshot, persistentBoard: true, boardTitle: data.title || data.snapshot.boardTitle || state.boardTitle };
+        const localUpdated = +(state.updatedAt || 0), remoteUpdated = +(remote.updatedAt || 0);
+        if (!state.events?.length || remoteUpdated > localUpdated) {
+          remoteApplying = true;
+          state = { ...state, ...remote };
+          normalize();
+          zoom = state.zoom || zoom;
+          localStorage.setItem(storageKey(), JSON.stringify(state));
+          render();
+          setView(view, false);
+          remoteApplying = false;
+        }
+        rememberLocalBoard(room, state.boardTitle || data.title || 'Shared board', { updatedAt: data.updatedAt || new Date().toISOString(), eventCount: state.events?.length || 0 });
+      }
+    } catch (err) {
+      console.warn('Could not refresh persistent board state', err);
     }
-  };
+  }
 
-  document.addEventListener('click', e => {
-    const viewButton = e.target.closest?.('[data-view="boards"]');
-    if (viewButton) { e.preventDefault(); setView('boards'); return; }
+  document.addEventListener('click', event => {
+    if (event.target.closest('#createBoardButton, #emptyCreateBoard')) { modalState('boardCreateModal', true); setTimeout(() => document.querySelector('#boardCreateForm input[name="title"]')?.focus(), 30); return; }
+    if (event.target.closest('[data-close-board-create]')) { modalState('boardCreateModal', false); return; }
+    if (event.target.closest('[data-close-board-history]')) { modalState('boardHistoryModal', false); return; }
 
-    if (e.target.closest?.('#createBoardButton,#emptyCreateBoard')) {
-      modalState('boardCreateModal', true);
-      setTimeout(() => document.querySelector('#boardCreateForm input[name="title"]')?.focus(), 20);
-      return;
-    }
-    if (e.target.closest?.('[data-close-board-create]')) { modalState('boardCreateModal', false); return; }
-    if (e.target.closest?.('[data-close-board-history]')) { modalState('boardHistoryModal', false); return; }
-
-    const open = e.target.closest?.('[data-board-open]');
+    const open = event.target.closest('[data-board-open]');
     if (open) { openBoard(open.dataset.boardOpen); return; }
-    const hist = e.target.closest?.('[data-board-history]');
-    if (hist) { loadVersions(hist.dataset.boardHistory); return; }
-    const rename = e.target.closest?.('[data-board-rename]');
+    const history = event.target.closest('[data-board-history]');
+    if (history) { loadVersions(history.dataset.boardHistory); return; }
+    const rename = event.target.closest('[data-board-rename]');
     if (rename) { renameBoard(rename.dataset.boardRename); return; }
-    const del = e.target.closest?.('[data-board-delete]');
-    if (del) { deleteOrForgetBoard(del.dataset.boardDelete, del.dataset.cloudDelete === '1'); return; }
-    const restore = e.target.closest?.('[data-restore-version]');
+    const remove = event.target.closest('[data-board-delete]');
+    if (remove) { deleteOrForgetBoard(remove.dataset.boardDelete, remove.dataset.cloudDelete === '1'); return; }
+    const restore = event.target.closest('[data-restore-version]');
     if (restore) { restoreVersion(restore.dataset.boardId, restore.dataset.restoreVersion); return; }
-    if (e.target.closest?.('#saveBoardVersionNow')) { saveVersionNow(); return; }
-  }, true);
+    if (event.target.closest('#saveBoardVersionNow')) { saveVersionNow(); return; }
+  });
 
-  document.addEventListener('submit', e => {
-    if (e.target.id !== 'boardCreateForm') return;
-    e.preventDefault();
-    createBoard(new FormData(e.target).get('title'));
-  }, true);
+  document.addEventListener('submit', event => {
+    if (event.target.id !== 'boardCreateForm') return;
+    event.preventDefault();
+    createBoard(new FormData(event.target).get('title'));
+  });
 
   ensureBoardsDom();
-  boardContextPill();
   renderBoards();
-
+  boardContextPill();
   if (room) {
     rememberLocalBoard(room, state.boardTitle || 'Shared board', { eventCount: state.events?.length || 0 });
-    clearTimeout(autoUpgradeTimer);
-    autoUpgradeTimer = setTimeout(ensureCurrentBoardAutosaves, 1200);
+    refreshCurrentFromServer().then(ensureCurrentBoardAutosaves);
   }
-  if (authUser) {
-    if (room) rememberCurrentInAccount();
-    loadLibrary();
-  }
+  if (authUser) loadLibrary();
+  setTimeout(() => { if (authUser) loadLibrary(); if (room) rememberCurrentInAccount(); }, 1200);
+  setTimeout(() => { if (room) ensureCurrentBoardAutosaves(); }, 2600);
+
+  V10.render = renderBoards;
+  V10.refresh = loadLibrary;
+  V10.open = openBoard;
+  V10.rememberCurrent = rememberCurrentInAccount;
 })();
