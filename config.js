@@ -1,10 +1,10 @@
 window.MSC_CONFIG = window.MSC_CONFIG || {};
 window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus:"", mii:"" };
 
-/* v33 production safe boot: storage sanitation, resilient styles, adaptive navigation, stability, budget, and production QoL. */
+/* v34 production safe boot: storage sanitation, resilient styles, adaptive navigation, budget, sanity repairs and production QoL. */
 (() => {
   'use strict';
-  const BUILD='20260823-prod-v33';
+  const BUILD='20260823-sanity-v34';
   window.MSC_BOOT_STATE={phase:'core-ready',safeMode:true,errors:[],build:BUILD};
 
   // Branding only. Internal MSC_* runtime names intentionally stay unchanged.
@@ -72,6 +72,9 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus
     loadScript(`app-v28-production.js?v=${BUILD}`,'data-msc-production')
       .then(()=>loadScript(`app-v29-device-nav.js?v=${BUILD}`,'data-msc-device-nav'))
       .then(()=>loadScript(`app-v32-budget-qol.js?v=${BUILD}`,'data-msc-qol'))
+      // Register the v34 interaction guard before v33 so its pointer/click compatibility fixes
+      // take precedence without rewriting the stable v32 budget/mobile-navigation layer.
+      .then(()=>loadScript(`app-v34-sanity.js?v=${BUILD}`,'data-msc-sanity'))
       .then(()=>loadScript(`app-v33-prod-qol.js?v=${BUILD}`,'data-msc-prod-qol'))
       .then(()=>{
         window.MSC_BOOT_STATE={...(window.MSC_BOOT_STATE||{}),phase:'production-ready',safeMode:false,build:BUILD};
