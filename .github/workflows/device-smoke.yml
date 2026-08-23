@@ -21,7 +21,7 @@ jobs:
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
-          npm install --no-save @playwright/test@1.55.0
+          npm install --no-save @playwright/test@1.62.1
           npx playwright install --with-deps chromium
       - name: Start static app
         run: |
@@ -31,4 +31,4 @@ jobs:
           cat /tmp/msc-http.log
           exit 1
       - name: Run UI and feature smoke tests
-        run: npx playwright test tests/device-smoke.spec.js tests/feature-smoke.spec.js --reporter=line --workers=1
+        run: npx playwright test tests/device-smoke.spec.js tests/feature-smoke.spec.js tests/prod-hardening.spec.js --reporter=line --workers=1

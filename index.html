@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#050505" />
   <meta name="color-scheme" content="dark" />
-  <title>MSC Event Management</title>
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <title>generic event manager</title>
   <link rel="stylesheet" href="styles.css?v=20260816-0825-v25" />
   <link rel="stylesheet" href="features-v26.css?v=20260816-1612-v26" />
 </head>
@@ -40,7 +42,7 @@
         <div class="topbar-copy">
           <div class="eyebrow" id="viewEyebrow">MSC workspace</div>
           <h1 id="viewTitle">Plan</h1>
-          <p id="viewSubtitle">Move events freely and build the schedule together.</p>
+          <p id="viewSubtitle">Arrange events and connect the plan.</p>
         </div>
 
         <div class="topbar-actions">
@@ -83,7 +85,7 @@
         <div>
           <div class="eyebrow">Event record</div>
           <h2 id="drawerTitle">New event</h2>
-          <p id="drawerActivity">Everything important, without crowding the board.</p>
+          <p id="drawerActivity">Edit the event details.</p>
         </div>
         <button class="icon-button" data-close-drawer aria-label="Close">×</button>
       </div>
@@ -158,14 +160,14 @@
     <div class="modal-backdrop" data-close-share></div>
     <section class="modal-card share-card" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <div><div class="eyebrow">Live workspace</div><h2>Collaborate on this board</h2><p>Share one link. Everyone sees pages, cursors, selections, edits and moves live.</p></div>
+        <div><div class="eyebrow">Live workspace</div><h2>Collaborate on this board</h2><p>Share this board for live editing.</p></div>
         <button class="icon-button" data-close-share>×</button>
       </div>
       <div class="share-state" id="shareState"></div>
       <div class="share-link-row"><input id="shareLink" readonly /><button class="button primary" id="copyShareLink">Copy link</button></div>
       <div class="name-row"><label class="field"><span>Your display name</span><input id="displayName" maxlength="40" placeholder="Your name" /></label></div>
       <div class="share-actions"><button class="button secondary" id="newSharedBoard">New empty shared board</button><button class="button secondary" id="leaveSharedBoard">Leave shared board</button></div>
-      <div class="share-note">Google sign-in gives collaborators a stable name/avatar. Guests can still use a shared room while Google OAuth is being configured.</div>
+      <div class="share-note">Sign in for a consistent name and saved account boards. Guests can still join shared boards.</div>
     </section>
   </div>
 
@@ -173,7 +175,7 @@
     <div class="modal-backdrop" data-close-account></div>
     <section class="modal-card account-card" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <div><div class="eyebrow">Account</div><h2>Google account</h2><p>Use Google identity for collaboration presence and attribution.</p></div>
+        <div><div class="eyebrow">Account</div><h2>Google account</h2><p>Sign in to sync your name and boards.</p></div>
         <button class="icon-button" data-close-account>×</button>
       </div>
       <div id="accountState" class="account-state"></div>
@@ -189,17 +191,17 @@
     <div class="modal-backdrop" data-close-maps></div>
     <section class="modal-card account-card" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <div><div class="eyebrow">Venues</div><h2>Map setup</h2><p>OpenStreetMap loads only when Venues is opened.</p></div>
+        <div><div class="eyebrow">Venues</div><h2>Map setup</h2><p>Search and pin venues with OpenStreetMap.</p></div>
         <button class="icon-button" data-close-maps>×</button>
       </div>
-      <div class="setup-note">No Google Maps key is required. OpenStreetMap and location tools are loaded on demand so they cannot block the planner.</div>
+      <div class="setup-note">No Google Maps key is needed. Venue search and location tools load only when you open Venues.</div>
     </section>
   </div>
 
   <div id="importModal" class="modal" aria-hidden="true">
     <div class="modal-backdrop" data-close-import></div>
     <section class="modal-card" role="dialog" aria-modal="true">
-      <div class="modal-header"><div><div class="eyebrow">Calendar import</div><h2>Import events</h2><p>Supports .ics / .ical, JSON and text-based PDF calendars.</p></div><button class="icon-button" data-close-import>×</button></div>
+      <div class="modal-header"><div><div class="eyebrow">Calendar import</div><h2>Import events</h2><p>Import .ics, .ical, JSON, or PDF calendars.</p></div><button class="icon-button" data-close-import>×</button></div>
       <label class="drop-zone" id="dropZone"><input id="calendarFile" type="file" accept=".ics,.ical,.json,.pdf,application/pdf" hidden /><span class="drop-icon">↥</span><strong>Choose or drop a calendar file</strong><small>Review before importing</small></label>
       <div id="importPreview" class="import-preview"></div>
       <div class="modal-actions"><button class="button secondary" data-close-import>Cancel</button><button class="button primary" id="confirmImportButton" disabled>Import selected</button></div>
@@ -209,19 +211,19 @@
   <div id="cursorLayer" class="cursor-layer"></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="config.js?v=20260822-qol-v32"></script>
-  <script src="app-core.js?v=20260822-qol-v32"></script>
-  <script src="app-views.js?v=20260822-qol-v32"></script>
-  <script src="app-online.js?v=20260822-qol-v32"></script>
-  <script src="app-integrations.js?v=20260822-qol-v32"></script>
-  <script src="app-v23-page-kernel.js?v=20260822-qol-v32"></script>
-  <script src="app-v24-page-controller.js?v=20260822-qol-v32"></script>
-  <script src="app-v24-safe-planner.js?v=20260822-qol-v32"></script>
-  <script src="app-v8-pdf.js?v=20260822-qol-v32"></script>
-  <script src="app-v21-large-import.js?v=20260822-qol-v32"></script>
-  <script src="app-bind.js?v=20260822-qol-v32"></script>
-  <script src="app-v26-aero-polish.js?v=20260822-qol-v32"></script>
-  <script src="app-v25-contacts-settings.js?v=20260822-qol-v32"></script>
-  <script src="app-v25-feature-loader.js?v=20260822-qol-v32"></script>
+  <script src="config.js?v=20260823-prod-v33"></script>
+  <script src="app-core.js?v=20260823-prod-v33"></script>
+  <script src="app-views.js?v=20260823-prod-v33"></script>
+  <script src="app-online.js?v=20260823-prod-v33"></script>
+  <script src="app-integrations.js?v=20260823-prod-v33"></script>
+  <script src="app-v23-page-kernel.js?v=20260823-prod-v33"></script>
+  <script src="app-v24-page-controller.js?v=20260823-prod-v33"></script>
+  <script src="app-v24-safe-planner.js?v=20260823-prod-v33"></script>
+  <script src="app-v8-pdf.js?v=20260823-prod-v33"></script>
+  <script src="app-v21-large-import.js?v=20260823-prod-v33"></script>
+  <script src="app-bind.js?v=20260823-prod-v33"></script>
+  <script src="app-v26-aero-polish.js?v=20260823-prod-v33"></script>
+  <script src="app-v25-contacts-settings.js?v=20260823-prod-v33"></script>
+  <script src="app-v25-feature-loader.js?v=20260823-prod-v33"></script>
 </body>
 </html>
