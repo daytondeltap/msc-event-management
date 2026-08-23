@@ -1,0 +1,24 @@
+/* v33 production QoL: simple collaborator dots, accessible focus, lighter More sheet, network state. */
+
+.remote-cursor{pointer-events:none;contain:layout style;transition:transform .045s linear}
+.cursor-pointer,.cursor-dot{display:block;width:9px!important;height:9px!important;border-radius:50%!important;background:var(--peer-color,#fff)!important;clip-path:none!important;box-shadow:0 0 0 2px rgba(0,0,0,.6),0 0 0 3px var(--peer-color,#fff)}
+.cursor-label{margin-left:13px!important;margin-top:-7px!important;border-radius:999px!important;padding:3px 7px!important;font-size:10px!important;line-height:1.2!important;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #d9d9d9;outline-offset:2px}
+
+html[data-network="offline"] .save-dot{background:var(--yellow,#f1c75b)}
+html[data-network="online"] .save-dot{background:var(--green,#43d17a)}
+
+@media(max-width:900px){
+  .mobile-more-backdrop{backdrop-filter:none!important}
+  .mobile-more-panel{overscroll-behavior:contain;scrollbar-gutter:stable}
+  .mobile-more-item{min-height:58px!important;touch-action:manipulation}
+  .mobile-more-button{touch-action:manipulation}
+  .mobile-more-button.active,.mobile-more-button[aria-expanded="true"]{background:#171717!important;border-color:#444!important;color:var(--text)!important}
+  .mobile-more-head .icon-button{min-width:44px;min-height:44px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .remote-cursor,.mobile-more-sheet,.mobile-more-panel,.nav-item,.button{transition:none!important;animation:none!important}
+  *{scroll-behavior:auto!important}
+}
