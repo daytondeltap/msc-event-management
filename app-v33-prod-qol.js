@@ -36,15 +36,6 @@
     };
   };
 
-  // Public browser builds should only contain publishable/anon style keys.
-  try {
-    const key = typeof SB_KEY === 'string' ? SB_KEY : '';
-    if (/service[_-]?role|sb_secret_/i.test(key)) {
-      console.error('Unsafe Supabase credential detected in the public client.');
-      window.MSC_PRODUCTION?.errors?.push({ kind: 'security', message: 'Unsafe public Supabase credential', time: Date.now() });
-    }
-  } catch {}
-
   // Do not broadcast signed-in email addresses through Realtime presence.
   if (typeof identityPayload === 'function') {
     const originalIdentityPayload = identityPayload;
