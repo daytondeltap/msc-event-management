@@ -215,6 +215,18 @@
       return;
     }
 
+    const searchInput = document.getElementById('globalSearch');
+    if (event.key === 'Escape' && document.activeElement === searchInput) {
+      event.preventDefault();
+      if (searchInput.value) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      } else {
+        searchInput.blur();
+      }
+      return;
+    }
+
     const tag = document.activeElement?.tagName || '';
     const typing = /INPUT|TEXTAREA|SELECT/.test(tag) || document.activeElement?.isContentEditable;
     const layerOpen = !!document.querySelector('.modal.open,.drawer.open,.v25-settings.open');
@@ -222,9 +234,8 @@
     if ((event.key === '/' || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k')) && !layerOpen) {
       if (event.key === '/' && typing) return;
       event.preventDefault();
-      const input = document.getElementById('globalSearch');
-      input?.focus();
-      input?.select?.();
+      searchInput?.focus();
+      searchInput?.select?.();
       return;
     }
 
