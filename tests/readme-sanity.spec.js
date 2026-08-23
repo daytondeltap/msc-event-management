@@ -43,7 +43,7 @@ test('README core routes, drawers, Options and lazy workspaces remain reachable'
 
   await page.locator('#shareButton').click();
   await expect(page.locator('#shareModal')).toHaveClass(/open/,{timeout:10000});
-  await page.locator('[data-close-share]').last().click();
+  await page.locator('button[data-close-share]').click();
   await expect(page.locator('[data-view="boards"]')).toHaveCount(1,{timeout:10000});
   await page.locator('[data-view="boards"]').click();
   await expect(page.locator('#boardsView')).toHaveClass(/active/,{timeout:10000});
@@ -60,38 +60,44 @@ test('Plan connection node can be named, styled, colored, dragged, auto-routed, 
   const ids=await seedSimpleGraph(page);
   const node=page.locator('[data-connection-node="sanity-conn"]');
   await expect(node).toBeVisible();
-  await node.click();
-  await expect(page.locator('#v34NodeEditor')).toBeVisible();
-  await expect(page.locator('#v34NodeEditor')).toContainText('Node name / label');
 
-  await page.locator('#v34NodeEditor [data-v24-label]').fill('Needs approval');
-  await page.locator('#v34NodeEditor [data-v24-style]').selectOption('dashed');
-  await page.locator('#v34NodeEditor [data-v24-tone]').selectOption('red');
-  await page.locator('#viewTitle').click();
-  let conn=await page.evaluate(()=>state.connections.find(c=>c.id==='sanity-conn'));
-  expect(conn).toMatchObject({label:'Needs approval',style:'dashed',tone:'red'});
-
+  // Verify movement first, before editor changes intentionally refresh the SVG layer.
   let box=await node.boundingBox();
+  expect(box).toBeTruthy();
   await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
   await page.mouse.down();
   await page.mouse.move(box.x+box.width/2+90,box.y+box.height/2+70,{steps:6});
   await page.mouse.up();
-  conn=await page.evaluate(()=>state.connections.find(c=>c.id==='sanity-conn'));
+  let conn=await page.evaluate(()=>state.connections.find(c=>c.id==='sanity-conn'));
   expect(conn.nodeMode).toBe('manual');
   expect(conn.node).toBeTruthy();
 
-  await page.waitForTimeout(350);
-  await page.locator('[data-connection-node="sanity-conn"]').click();
+  await page.waitForTimeout(250);
+  await expect(node).toBeVisible();
+  await node.click();
+  await expect(page.locator('#v34NodeEditor')).toBeVisible();
+  await expect(page.locator('#v34NodeEditor')).toContainText('Node name / label');
+  await page.locator('#v34NodeEditor [data-v24-label]').fill('Needs approval');
+  await page.locator('#v34NodeEditor [data-v24-style]').selectOption('dashed');
+  await page.locator('#v34NodeEditor [data-v24-tone]').selectOption('red');
+  await page.locator('#viewTitle').click();
+  conn=await page.evaluate(()=>state.connections.find(c=>c.id==='sanity-conn'));
+  expect(conn).toMatchObject({label:'Needs approval',style:'dashed',tone:'red',nodeMode:'manual'});
+
+  await expect(node).toBeVisible();
+  await node.click();
   await page.locator('#v34NodeEditor [data-v24-auto]').click();
   conn=await page.evaluate(()=>state.connections.find(c=>c.id==='sanity-conn'));
   expect(conn.nodeMode).toBe('auto');
 
-  await page.locator('[data-connection-node="sanity-conn"]').click();
+  await expect(node).toBeVisible();
+  await node.click();
   await page.locator('#v34NodeEditor [data-v24-reverse]').click();
   conn=await page.evaluate(()=>state.connections.find(c=>c.id==='sanity-conn'));
   expect(conn.from).toBe(ids.b);expect(conn.to).toBe(ids.a);
 
-  await page.locator('[data-connection-node="sanity-conn"]').click();
+  await expect(node).toBeVisible();
+  await node.click();
   await page.locator('#v34NodeEditor [data-v24-delete]').click();
   expect(await page.evaluate(()=>state.connections.some(c=>c.id==='sanity-conn'))).toBeFalsy();
 });
@@ -134,7 +140,7 @@ test('Contacts, approval roles and custom email presets remain connected', async
   await expect(page.locator('#contactsView')).toContainText('Sanity preset');
 
   await page.locator('#newEventButton').click();
-  await expect(page.locator('#eventForm [name="approvalRole"] option')).toContainText('Advisor');
+  await expect(page.locator('#eventForm [name="approvalRole"]')).toContainText('Advisor');
   await page.locator('[data-close-drawer]').last().click();
 });
 
