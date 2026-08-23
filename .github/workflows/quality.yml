@@ -41,10 +41,12 @@ jobs:
           test -s app-v28-production.js
           test -s app-v32-budget-qol.js
           test -s app-v33-prod-qol.js
+          test -s app-v34-sanity.js
           test -s features-v28-production.css
           test -s features-v32-qol.css
           test -s features-v33-prod.css
-          grep -q '20260823-prod-v33' index.html
+          grep -q '20260823-sanity-v34' index.html
+          grep -q 'app-v34-sanity.js' config.js
           grep -q 'app-v33-prod-qol.js' config.js
           grep -q 'features-v33-prod.css' config.js
           grep -q 'Content-Security-Policy' index.html
