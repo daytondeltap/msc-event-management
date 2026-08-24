@@ -1,10 +1,10 @@
 window.MSC_CONFIG = window.MSC_CONFIG || {};
 window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus:"", mii:"" };
 
-/* v34 production safe boot: storage sanitation, resilient styles, adaptive navigation, budget, sanity repairs and production QoL. */
+/* v35 production safe boot: storage sanitation, identity isolation, resilient styles, adaptive navigation, budget, sanity repairs and production QoL. */
 (() => {
   'use strict';
-  const BUILD='20260823-sanity-v34';
+  const BUILD='20260824-account-v35';
   window.MSC_BOOT_STATE={phase:'core-ready',safeMode:true,errors:[],build:BUILD};
 
   // Branding only. Internal MSC_* runtime names intentionally stay unchanged.
