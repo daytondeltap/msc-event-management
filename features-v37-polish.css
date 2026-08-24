@@ -5,9 +5,6 @@
   --motion-panel:180ms;
   --motion-ease:cubic-bezier(.2,.75,.2,1);
   --motion-snap:cubic-bezier(.16,1,.3,1);
-  --surface-hover:#141414;
-  --surface-pressed:#0f0f0f;
-  --hairline:rgba(255,255,255,.065);
 }
 
 /* Keep interaction feedback consistent and compositor-friendly. */
@@ -18,9 +15,6 @@
   transition-duration:var(--motion-ui);
   transition-timing-function:var(--motion-ease);
 }
-
-.button,.icon-button,.account-button,.presence-button,.nav-item,.mobile-more-item,.budget-key,.budget-filter,
-.board-context-pill,.empty-board-create,.cal-event{transform:translateZ(0)}
 
 @media (hover:hover) and (pointer:fine){
   .button:not(:disabled):hover,.icon-button:not(:disabled):hover,.account-button:hover,.presence-button:hover,
@@ -67,15 +61,14 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 @keyframes v37ViewIn{from{opacity:.72;transform:translate3d(0,5px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @keyframes v37PlanIn{from{opacity:.86}to{opacity:1}}
 
-/* Panels/cards: slight depth, no large-scale blur/filter work. */
-.metric,.panel,.board-col,.budget-summary-card{transition:border-color var(--motion-ui) ease,box-shadow var(--motion-ui) ease,background-color var(--motion-ui) ease}
-.metric,.panel{box-shadow:0 8px 28px rgba(0,0,0,.12)}
-.metric:hover,.panel:hover{box-shadow:0 12px 34px rgba(0,0,0,.17)}
+/* Panels/cards: subtle depth, but no animated large-panel shadow repaints. */
+.metric,.panel{transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.board-col,.budget-summary-card{transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease}
 .panel-header{background:linear-gradient(180deg,rgba(255,255,255,.012),transparent)}
 
 /* Planner: do not touch event-block transform because it owns world coordinates. */
 .event-block{transition:border-color var(--motion-ui) ease,box-shadow var(--motion-ui) ease,opacity var(--motion-fast) ease}
-.event-block .block-shell{transition:background-color var(--motion-ui) ease,box-shadow var(--motion-ui) ease}
+.event-block .block-shell{transition:background-color var(--motion-ui) ease}
 .event-block:hover .block-shell{background:#101010}
 .event-block.moving{transition:none!important;box-shadow:0 24px 66px rgba(0,0,0,.5)}
 .block-handle{transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease}
@@ -92,8 +85,8 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 /* Modals/drawers: remove backdrop blur and animate only opacity/transform. */
 .drawer-backdrop,.modal-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(0,0,0,.72)}
 .drawer.open .drawer-backdrop,.modal.open .modal-backdrop{animation:v37BackdropIn var(--motion-ui) ease-out both}
-.drawer.open .drawer-panel{animation:v37DrawerIn var(--motion-panel) var(--motion-snap) both;will-change:transform,opacity}
-.modal.open .modal-card{animation:v37ModalIn var(--motion-panel) var(--motion-snap) both;will-change:transform,opacity}
+.drawer.open .drawer-panel{animation:v37DrawerIn var(--motion-panel) var(--motion-snap) both}
+.modal.open .modal-card{animation:v37ModalIn var(--motion-panel) var(--motion-snap) both}
 .presence-popover.open{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top right}
 .v20-node-editor.show,.v34-node-editor.show{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top left}
 @keyframes v37BackdropIn{from{opacity:0}to{opacity:1}}
@@ -104,7 +97,7 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 /* Mobile More retains display-based ownership; animate its children once open. */
 .mobile-more-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .mobile-more-sheet.open .mobile-more-backdrop{animation:v37BackdropIn 130ms ease-out both}
-.mobile-more-sheet.open .mobile-more-panel{animation:v37SheetIn var(--motion-panel) var(--motion-snap) both;will-change:transform,opacity}
+.mobile-more-sheet.open .mobile-more-panel{animation:v37SheetIn var(--motion-panel) var(--motion-snap) both}
 @keyframes v37SheetIn{from{opacity:.9;transform:translate3d(0,18px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 
 /* Boards and dynamic workspace affordances. */
@@ -119,6 +112,11 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 /* Lightweight loading and feedback polish. */
 .toast,.toast-item{animation:v37ToastIn var(--motion-panel) var(--motion-snap) both}
 @keyframes v37ToastIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+
+@media (max-width:900px){
+  .nav-item::before{left:50%;top:auto;bottom:2px;width:18px;height:2px;transform:translate3d(-50%,4px,0) scaleX(.55)}
+  .nav-item.active::before{transform:translate3d(-50%,0,0) scaleX(1)}
+}
 
 /* Coarse pointers get feedback but no hover-only travel. */
 @media (hover:none),(pointer:coarse){
