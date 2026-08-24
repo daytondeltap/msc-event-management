@@ -43,7 +43,7 @@ test('README core routes, drawers, Options and lazy workspaces remain reachable'
 
   await page.locator('#shareButton').click();
   await expect(page.locator('#shareModal')).toHaveClass(/open/,{timeout:10000});
-  await page.locator('button[data-close-share]').click();
+  await page.locator('button[data-close-v11-share],button[data-close-share]').click();
   await expect(page.locator('[data-view="boards"]')).toHaveCount(1,{timeout:10000});
   await page.locator('[data-view="boards"]').click();
   await expect(page.locator('#boardsView')).toHaveClass(/active/,{timeout:10000});
@@ -61,7 +61,6 @@ test('Plan connection node can be named, styled, colored, dragged, auto-routed, 
   const node=page.locator('[data-connection-node="sanity-conn"]');
   await expect(node).toBeVisible();
 
-  // Verify movement first, before editor changes intentionally refresh the SVG layer.
   let box=await node.boundingBox();
   expect(box).toBeTruthy();
   await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
