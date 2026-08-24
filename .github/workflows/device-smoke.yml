@@ -31,4 +31,4 @@ jobs:
           cat /tmp/msc-http.log
           exit 1
       - name: Run UI, feature and identity isolation tests
-        run: npx playwright test tests/device-smoke.spec.js tests/feature-smoke.spec.js tests/prod-hardening.spec.js tests/readme-sanity.spec.js tests/account-isolation.spec.js --reporter=line --workers=1
+        run: npx playwright test tests/device-smoke.spec.js tests/feature-smoke.spec.js tests/prod-hardening.spec.js tests/readme-sanity.spec.js tests/account-isolation.spec.js tests/logout-identity.spec.js --reporter=line --workers=1
