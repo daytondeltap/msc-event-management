@@ -7,21 +7,43 @@
   --motion-snap:cubic-bezier(.16,1,.3,1);
 }
 
-/* Keep interaction feedback consistent and compositor-friendly. */
-.button,.icon-button,.account-button,.presence-button,.nav-item,.board-context-pill,
-.mobile-more-item,.budget-key,.budget-filter,.cal-event,.empty-board-create,
-.boards-grid .board-card,.board-card,.venue-row,tr[data-open-event],.search-box{
+/* Override the older v26 generic motion with shorter, explicit properties. */
+html:not(.reduce-motion) .button,
+html:not(.reduce-motion) .icon-button,
+html:not(.reduce-motion) .nav-item,
+html:not(.reduce-motion) .account-button,
+html:not(.reduce-motion) .presence-button,
+html:not(.reduce-motion) .board-card,
+html:not(.reduce-motion) .v25-setting-section,
+html:not(.reduce-motion) .board-context-pill,
+html:not(.reduce-motion) .mobile-more-item,
+html:not(.reduce-motion) .budget-key,
+html:not(.reduce-motion) .budget-filter,
+html:not(.reduce-motion) .cal-event,
+html:not(.reduce-motion) .empty-board-create,
+html:not(.reduce-motion) .venue-row,
+html:not(.reduce-motion) tr[data-open-event],
+html:not(.reduce-motion) .search-box{
   transition-property:background-color,border-color,color,box-shadow,opacity,transform;
   transition-duration:var(--motion-ui);
   transition-timing-function:var(--motion-ease);
 }
+html:not(.reduce-motion) .metric,
+html:not(.reduce-motion) .panel{
+  transition:border-color var(--motion-ui) var(--motion-ease),background-color var(--motion-ui) var(--motion-ease);
+}
+html:not(.reduce-motion) .modal-card,
+html:not(.reduce-motion) .drawer-panel{transition:none}
 
 @media (hover:hover) and (pointer:fine){
-  .button:not(:disabled):hover,.icon-button:not(:disabled):hover,.account-button:hover,.presence-button:hover,
-  .budget-key:not(:disabled):hover,.mobile-more-item:hover,.cal-event:hover{
-    transform:translate3d(0,-1px,0);
-  }
-  .nav-item:hover{transform:translate3d(2px,0,0)}
+  html:not(.reduce-motion) .button:not(:disabled):hover,
+  html:not(.reduce-motion) .icon-button:not(:disabled):hover,
+  html:not(.reduce-motion) .account-button:hover,
+  html:not(.reduce-motion) .presence-button:hover,
+  html:not(.reduce-motion) .budget-key:not(:disabled):hover,
+  html:not(.reduce-motion) .mobile-more-item:hover,
+  html:not(.reduce-motion) .cal-event:hover{transform:translate3d(0,-1px,0)}
+  html:not(.reduce-motion) .nav-item:hover{transform:translate3d(2px,0,0)}
   .metric:hover,.panel:hover{border-color:#292929}
   .venue-row:hover,tr[data-open-event]:hover{background:#101010}
 }
@@ -62,7 +84,7 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 @keyframes v37PlanIn{from{opacity:.86}to{opacity:1}}
 
 /* Panels/cards: subtle depth, but no animated large-panel shadow repaints. */
-.metric,.panel{transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.metric,.panel{box-shadow:0 8px 28px rgba(0,0,0,.12)}
 .board-col,.budget-summary-card{transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease}
 .panel-header{background:linear-gradient(180deg,rgba(255,255,255,.012),transparent)}
 
@@ -82,11 +104,12 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 @media (hover:hover) and (pointer:fine){.board-col .board-card:hover{transform:translate3d(0,-2px,0);box-shadow:0 12px 28px rgba(0,0,0,.22)}}
 .board-col .board-card:active{transform:scale(.99)}
 
-/* Modals/drawers: remove backdrop blur and animate only opacity/transform. */
+/* Modals/drawers/settings: remove backdrop blur and override slower v26 surface animation. */
 .drawer-backdrop,.modal-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(0,0,0,.72)}
 .drawer.open .drawer-backdrop,.modal.open .modal-backdrop{animation:v37BackdropIn var(--motion-ui) ease-out both}
-.drawer.open .drawer-panel{animation:v37DrawerIn var(--motion-panel) var(--motion-snap) both}
-.modal.open .modal-card{animation:v37ModalIn var(--motion-panel) var(--motion-snap) both}
+html:not(.reduce-motion) .drawer.open .drawer-panel{animation:v37DrawerIn var(--motion-panel) var(--motion-snap) both}
+html:not(.reduce-motion) .modal.open .modal-card,
+html:not(.reduce-motion) .v25-settings.open .v25-settings-card{animation:v37ModalIn var(--motion-panel) var(--motion-snap) both}
 .presence-popover.open{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top right}
 .v20-node-editor.show,.v34-node-editor.show{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top left}
 @keyframes v37BackdropIn{from{opacity:0}to{opacity:1}}
@@ -120,8 +143,10 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 
 /* Coarse pointers get feedback but no hover-only travel. */
 @media (hover:none),(pointer:coarse){
-  .button,.icon-button,.account-button,.presence-button,.nav-item,.mobile-more-item,.budget-key{transition-duration:90ms}
-  .nav-item:hover{transform:none}
+  html:not(.reduce-motion) .button,html:not(.reduce-motion) .icon-button,html:not(.reduce-motion) .account-button,
+  html:not(.reduce-motion) .presence-button,html:not(.reduce-motion) .nav-item,html:not(.reduce-motion) .mobile-more-item,
+  html:not(.reduce-motion) .budget-key{transition-duration:90ms}
+  html:not(.reduce-motion) .nav-item:hover{transform:none}
 }
 
 /* Avoid extra entrance work on very large/complex planner canvases. */
@@ -130,13 +155,13 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 @media (prefers-reduced-motion:reduce){
   :root{--motion-fast:0ms;--motion-ui:0ms;--motion-panel:0ms}
   .view.active,.plan-view.active,.drawer.open .drawer-backdrop,.modal.open .modal-backdrop,
-  .drawer.open .drawer-panel,.modal.open .modal-card,.presence-popover.open,
+  .drawer.open .drawer-panel,.modal.open .modal-card,.v25-settings.open .v25-settings-card,.presence-popover.open,
   .v20-node-editor.show,.v34-node-editor.show,.mobile-more-sheet.open .mobile-more-backdrop,
   .mobile-more-sheet.open .mobile-more-panel,.toast,.toast-item{animation:none!important}
   .button,.icon-button,.account-button,.presence-button,.nav-item,.board-context-pill,.mobile-more-item,
-  .budget-key,.budget-filter,.cal-event,.empty-board-create,.boards-grid .board-card,.board-card,
+  .budget-key,.budget-filter,.cal-event,.empty-board-create,.boards-grid .board-card,.board-card,.v25-setting-section,
   .venue-row,tr[data-open-event],.search-box,.brand-mark,.metric,.panel,.event-block,.block-shell,
-  .block-handle,.connection-line,[data-connection-node],.field input,.field select,.field textarea{
+  .block-handle,.connection-line,[data-connection-node],.field input,.field select,.field textarea,.modal-card,.drawer-panel{
     transition:none!important;
   }
 }
