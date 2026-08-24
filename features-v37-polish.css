@@ -77,11 +77,11 @@ html:not(.reduce-motion) .drawer-panel{transition:none}
 html[data-network="online"] .save-dot{box-shadow:0 0 0 3px rgba(67,209,122,.07)}
 html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)}
 
-/* View entrances are intentionally very short. */
-.view.active{animation:v37ViewIn var(--motion-panel) var(--motion-snap) both}
+/* View entrances are intentionally opacity-only so large layouts never shift or create new containing blocks. */
+.view.active{animation:v37ViewIn var(--motion-panel) ease-out both}
 .plan-view.active{animation:v37PlanIn 130ms ease-out both}
-@keyframes v37ViewIn{from{opacity:.72;transform:translate3d(0,5px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-@keyframes v37PlanIn{from{opacity:.86}to{opacity:1}}
+@keyframes v37ViewIn{from{opacity:.76}to{opacity:1}}
+@keyframes v37PlanIn{from{opacity:.88}to{opacity:1}}
 
 /* Panels/cards: subtle depth, but no animated large-panel shadow repaints. */
 .metric,.panel{box-shadow:0 8px 28px rgba(0,0,0,.12)}
@@ -107,21 +107,21 @@ html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)
 /* Modals/drawers/settings: remove backdrop blur and override slower v26 surface animation. */
 .drawer-backdrop,.modal-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(0,0,0,.72)}
 .drawer.open .drawer-backdrop,.modal.open .modal-backdrop{animation:v37BackdropIn var(--motion-ui) ease-out both}
-html:not(.reduce-motion) .drawer.open .drawer-panel{animation:v37DrawerIn var(--motion-panel) var(--motion-snap) both}
+html:not(.reduce-motion) .drawer.open .drawer-panel{animation:v37DrawerIn var(--motion-panel) var(--motion-snap) both;transform-origin:right center}
 html:not(.reduce-motion) .modal.open .modal-card,
 html:not(.reduce-motion) .v25-settings.open .v25-settings-card{animation:v37ModalIn var(--motion-panel) var(--motion-snap) both}
 .presence-popover.open{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top right}
 .v20-node-editor.show,.v34-node-editor.show{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top left}
 @keyframes v37BackdropIn{from{opacity:0}to{opacity:1}}
-@keyframes v37DrawerIn{from{opacity:.82;transform:translate3d(18px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-@keyframes v37ModalIn{from{opacity:.78;transform:translate3d(0,8px,0) scale(.988)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
-@keyframes v37PopoverIn{from{opacity:.7;transform:translate3d(0,-4px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes v37DrawerIn{from{opacity:.78;transform:scaleX(.992)}to{opacity:1;transform:scaleX(1)}}
+@keyframes v37ModalIn{from{opacity:.78;transform:translate3d(0,6px,0) scale(.99)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes v37PopoverIn{from{opacity:.72;transform:translate3d(0,-3px,0) scale(.99)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
 
 /* Mobile More retains display-based ownership; animate its children once open. */
 .mobile-more-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .mobile-more-sheet.open .mobile-more-backdrop{animation:v37BackdropIn 130ms ease-out both}
 .mobile-more-sheet.open .mobile-more-panel{animation:v37SheetIn var(--motion-panel) var(--motion-snap) both}
-@keyframes v37SheetIn{from{opacity:.9;transform:translate3d(0,18px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes v37SheetIn{from{opacity:.9;transform:translate3d(0,14px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 
 /* Boards and dynamic workspace affordances. */
 .boards-grid .board-card{will-change:auto}
@@ -134,7 +134,7 @@ html:not(.reduce-motion) .v25-settings.open .v25-settings-card{animation:v37Moda
 
 /* Lightweight loading and feedback polish. */
 .toast,.toast-item{animation:v37ToastIn var(--motion-panel) var(--motion-snap) both}
-@keyframes v37ToastIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes v37ToastIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 
 @media (max-width:900px){
   .nav-item::before{left:50%;top:auto;bottom:2px;width:18px;height:2px;transform:translate3d(-50%,4px,0) scaleX(.55)}
