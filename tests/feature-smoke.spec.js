@@ -126,7 +126,6 @@ test('mobile navigation keeps primary pages fixed and puts secondary tools in Mo
   await expect(page.locator('#mobileMoreGrid')).toContainText('Export');
   await expect(page.locator('#mobileMoreGrid')).toContainText('Options');
 
-  // First tap must lazy-load Boards and dismiss the More sheet once the workspace is ready.
   await page.locator('#mobileMoreGrid [data-view="boards"]').click();
   await expect(page.locator('#boardsView')).toHaveClass(/active/, {timeout:10000});
   await expect(page.locator('#mobileMoreSheet')).not.toHaveClass(/open/);
@@ -150,12 +149,15 @@ test('mobile navigation keeps primary pages fixed and puts secondary tools in Mo
   await context.close();
 });
 
-test('Google OAuth uses a canonical callback and remembers the board URL', async ({ page }) => {
-  await page.goto(`${APP}?board=feature-smoke-board`, { waitUntil: 'domcontentloaded' });
+test('Google OAuth uses a canonical callback and remembers the current board URL', async ({ page }) => {
+  const boardId='O'.repeat(48);
+  await page.goto(APP, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#accountButton');
-  await page.waitForTimeout(300);
+  await page.waitForFunction(()=>!!window.MSC_AUTH && !!window.MSC_STORAGE_SCOPE,{timeout:10000});
 
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async boardId => {
+    room=boardId;
+    const current=new URL(location.href);current.searchParams.set('board',boardId);history.replaceState({},'',current);
     supabase = {
       auth: {
         signInWithOAuth: async args => {
@@ -170,16 +172,17 @@ test('Google OAuth uses a canonical callback and remembers the board URL', async
       args: window.__mscOAuthArgs,
       returnUrl: sessionStorage.getItem('mscGoogleOAuthReturnV31')
     };
-  });
+  },boardId);
 
   expect(result.args.provider).toBe('google');
   expect(result.args.options.redirectTo).toBe(APP);
-  expect(result.returnUrl).toBe(`${APP}?board=feature-smoke-board`);
+  expect(result.returnUrl).toBe(`${APP}?board=${boardId}`);
 });
 
-test('guest board owner key is attached to persistence requests', async ({ page }) => {
+test('guest board owner key is attached to persistence requests only in guest scope', async ({ page }) => {
   let seenOwner = '';
-  await page.route('**/functions/v1/persistent-board?board=feature-smoke-owner', async route => {
+  const boardId='K'.repeat(48);
+  await page.route('**/functions/v1/persistent-board?board=*', async route => {
     const request = route.request();
     if (request.method() === 'OPTIONS') {
       await route.fulfill({
@@ -194,20 +197,19 @@ test('guest board owner key is attached to persistence requests', async ({ page 
       return;
     }
     seenOwner = request.headers()['x-board-owner'] || '';
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: { 'access-control-allow-origin': '*' },
-      body: JSON.stringify({ ok: true })
-    });
+    await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({ok:true})});
   });
 
   await page.goto(APP, { waitUntil: 'domcontentloaded' });
-  await page.evaluate(() => localStorage.setItem('mscBoardOwnerKey:feature-smoke-owner', 'feature-owner-secret'));
-  const ok = await page.evaluate(async () => {
-    const res = await fetch(`${SB_URL}/functions/v1/persistent-board?board=feature-smoke-owner`, { cache: 'no-store' });
+  await page.waitForFunction(()=>!!window.MSC_STORAGE_SCOPE,{timeout:10000});
+  await page.evaluate(({boardId}) => {
+    MSC_STORAGE_SCOPE.setIdentity(null);
+    localStorage.setItem(`mscBoardOwnerKey:${boardId}`, 'feature-owner-secret');
+  },{boardId});
+  const ok = await page.evaluate(async boardId => {
+    const res = await fetch(`${SB_URL}/functions/v1/persistent-board?board=${boardId}`, { cache: 'no-store' });
     return res.ok;
-  });
+  },boardId);
   expect(ok).toBeTruthy();
   expect(seenOwner).toBe('feature-owner-secret');
 });
