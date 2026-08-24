@@ -46,14 +46,24 @@ jobs:
           test -s app-v35-auth-isolation.js
           test -s app-v35-node-drag.js
           test -s tests/account-isolation.spec.js
+          test -s tests/ui-polish.spec.js
           test -s features-v28-production.css
           test -s features-v32-qol.css
           test -s features-v33-prod.css
+          test -s features-v37-polish.css
           grep -q '20260824-account-v35' index.html
+          grep -q '20260824-ui-v37' index.html
           grep -q 'app-v35-storage-scope.js' index.html
           grep -q 'app-v35-auth-isolation.js' index.html
           grep -q 'app-v35-node-drag.js' index.html
           grep -q 'app-v34-sanity.js' config.js
           grep -q 'app-v33-prod-qol.js' config.js
           grep -q 'features-v33-prod.css' config.js
+          grep -q 'features-v37-polish.css' config.js
+          grep -q 'prefers-reduced-motion:reduce' features-v37-polish.css
+          grep -q 'backdrop-filter:none' features-v37-polish.css
+          if grep -Eq 'transition[[:space:]]*:[[:space:]]*all|backdrop-filter[[:space:]]*:[[:space:]]*blur' features-v37-polish.css; then
+            echo 'v37 polish contains a broad transition or expensive backdrop blur.' >&2
+            exit 1
+          fi
           grep -q 'Content-Security-Policy' index.html

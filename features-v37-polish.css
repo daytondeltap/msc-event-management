@@ -1,0 +1,167 @@
+/* v37: fast visual polish. CSS-first, transform/opacity focused, no heavy blur or animation framework. */
+:root{
+  --motion-fast:110ms;
+  --motion-ui:150ms;
+  --motion-panel:180ms;
+  --motion-ease:cubic-bezier(.2,.75,.2,1);
+  --motion-snap:cubic-bezier(.16,1,.3,1);
+}
+
+/* Override the older v26 generic motion with shorter, explicit properties. */
+html:not(.reduce-motion) .button,
+html:not(.reduce-motion) .icon-button,
+html:not(.reduce-motion) .nav-item,
+html:not(.reduce-motion) .account-button,
+html:not(.reduce-motion) .presence-button,
+html:not(.reduce-motion) .board-card,
+html:not(.reduce-motion) .v25-setting-section,
+html:not(.reduce-motion) .board-context-pill,
+html:not(.reduce-motion) .mobile-more-item,
+html:not(.reduce-motion) .budget-key,
+html:not(.reduce-motion) .budget-filter,
+html:not(.reduce-motion) .cal-event,
+html:not(.reduce-motion) .empty-board-create,
+html:not(.reduce-motion) .venue-row,
+html:not(.reduce-motion) tr[data-open-event],
+html:not(.reduce-motion) .search-box{
+  transition-property:background-color,border-color,color,box-shadow,opacity,transform;
+  transition-duration:var(--motion-ui);
+  transition-timing-function:var(--motion-ease);
+}
+html:not(.reduce-motion) .metric,
+html:not(.reduce-motion) .panel{
+  transition:border-color var(--motion-ui) var(--motion-ease),background-color var(--motion-ui) var(--motion-ease);
+}
+html:not(.reduce-motion) .modal-card,
+html:not(.reduce-motion) .drawer-panel{transition:none}
+
+@media (hover:hover) and (pointer:fine){
+  html:not(.reduce-motion) .button:not(:disabled):hover,
+  html:not(.reduce-motion) .icon-button:not(:disabled):hover,
+  html:not(.reduce-motion) .account-button:hover,
+  html:not(.reduce-motion) .presence-button:hover,
+  html:not(.reduce-motion) .budget-key:not(:disabled):hover,
+  html:not(.reduce-motion) .mobile-more-item:hover,
+  html:not(.reduce-motion) .cal-event:hover{transform:translate3d(0,-1px,0)}
+  html:not(.reduce-motion) .nav-item:hover{transform:translate3d(2px,0,0)}
+  .metric:hover,.panel:hover{border-color:#292929}
+  .venue-row:hover,tr[data-open-event]:hover{background:#101010}
+}
+
+.button:not(:disabled):active,.icon-button:not(:disabled):active,.account-button:active,.presence-button:active,
+.nav-item:active,.mobile-more-item:active,.budget-key:not(:disabled):active,.budget-filter:active,
+.board-context-pill:active,.empty-board-create:active,.cal-event:active{
+  transform:translate3d(0,0,0) scale(.975);
+  transition-duration:var(--motion-fast);
+}
+
+/* Navigation: stronger hierarchy without extra DOM or JS. */
+.nav-item{position:relative;overflow:hidden}
+.nav-item::before{
+  content:"";position:absolute;left:5px;top:50%;width:2px;height:18px;border-radius:999px;
+  background:currentColor;opacity:0;transform:translate3d(-4px,-50%,0) scaleY(.55);
+  transition:opacity var(--motion-ui) ease,transform var(--motion-ui) var(--motion-snap);
+}
+.nav-item.active{background:linear-gradient(90deg,#151515,#101010);border-color:#2b2b2b;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+.nav-item.active::before{opacity:.82;transform:translate3d(0,-50%,0) scaleY(1)}
+.brand-mark{transition:transform var(--motion-ui) var(--motion-snap),border-color var(--motion-ui) ease,background var(--motion-ui) ease}
+@media (hover:hover) and (pointer:fine){.brand:hover .brand-mark{transform:rotate(-2deg) scale(1.025);border-color:#444;background:#151515}}
+.brand:active .brand-mark{transform:scale(.97)}
+
+/* Top chrome and form focus feel more deliberate. */
+.topbar{box-shadow:0 1px 0 rgba(255,255,255,.015)}
+.search-box:focus-within{border-color:#4a4a4a;background:#0e0e0e;box-shadow:0 0 0 3px rgba(255,255,255,.035)}
+.field input,.field select,.field textarea{transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease,box-shadow var(--motion-ui) ease}
+.field input:focus,.field select:focus,.field textarea:focus{box-shadow:0 0 0 3px rgba(255,255,255,.035)}
+.save-dot{transition:background-color var(--motion-ui) ease,box-shadow var(--motion-ui) ease}
+html[data-network="online"] .save-dot{box-shadow:0 0 0 3px rgba(67,209,122,.07)}
+html[data-network="offline"] .save-dot{box-shadow:0 0 0 3px rgba(241,199,91,.07)}
+
+/* View entrances are intentionally opacity-only so large layouts never shift or create new containing blocks. */
+.view.active{animation:v37ViewIn var(--motion-panel) ease-out both}
+.plan-view.active{animation:v37PlanIn 130ms ease-out both}
+@keyframes v37ViewIn{from{opacity:.76}to{opacity:1}}
+@keyframes v37PlanIn{from{opacity:.88}to{opacity:1}}
+
+/* Panels/cards: subtle depth, but no animated large-panel shadow repaints. */
+.metric,.panel{box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.board-col,.budget-summary-card{transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease}
+.panel-header{background:linear-gradient(180deg,rgba(255,255,255,.012),transparent)}
+
+/* Planner: do not touch event-block transform because it owns world coordinates. */
+.event-block{transition:border-color var(--motion-ui) ease,box-shadow var(--motion-ui) ease,opacity var(--motion-fast) ease}
+.event-block .block-shell{transition:background-color var(--motion-ui) ease}
+.event-block:hover .block-shell{background:#101010}
+.event-block.moving{transition:none!important;box-shadow:0 24px 66px rgba(0,0,0,.5)}
+.block-handle{transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease}
+.event-block:hover .block-handle{background:#101010;color:#898989}
+.connection-line{transition:stroke var(--motion-fast) ease,stroke-width var(--motion-fast) ease}
+[data-connection-node]{transition:filter var(--motion-fast) ease,opacity var(--motion-fast) ease}
+@media (hover:hover) and (pointer:fine){[data-connection-node]:hover{filter:brightness(1.28)}}
+
+/* Status/Kanban cards get tactile movement only in normal document flow. */
+.board-card{transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease,box-shadow var(--motion-ui) ease,transform var(--motion-ui) var(--motion-snap)}
+@media (hover:hover) and (pointer:fine){.board-col .board-card:hover{transform:translate3d(0,-2px,0);box-shadow:0 12px 28px rgba(0,0,0,.22)}}
+.board-col .board-card:active{transform:scale(.99)}
+
+/* Modals/drawers/settings: remove backdrop blur and override slower v26 surface animation. */
+.drawer-backdrop,.modal-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(0,0,0,.72)}
+.drawer.open .drawer-backdrop,.modal.open .modal-backdrop{animation:v37BackdropIn var(--motion-ui) ease-out both}
+html:not(.reduce-motion) .drawer.open .drawer-panel{animation:v37DrawerIn var(--motion-panel) var(--motion-snap) both;transform-origin:right center}
+html:not(.reduce-motion) .modal.open .modal-card,
+html:not(.reduce-motion) .v25-settings.open .v25-settings-card{animation:v37ModalIn var(--motion-panel) var(--motion-snap) both}
+.presence-popover.open{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top right}
+.v20-node-editor.show,.v34-node-editor.show{animation:v37PopoverIn var(--motion-ui) var(--motion-snap) both;transform-origin:top left}
+@keyframes v37BackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes v37DrawerIn{from{opacity:.78;transform:scaleX(.992)}to{opacity:1;transform:scaleX(1)}}
+@keyframes v37ModalIn{from{opacity:.78;transform:translate3d(0,6px,0) scale(.99)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes v37PopoverIn{from{opacity:.72;transform:translate3d(0,-3px,0) scale(.99)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+
+/* Mobile More retains display-based ownership; animate its children once open. */
+.mobile-more-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.mobile-more-sheet.open .mobile-more-backdrop{animation:v37BackdropIn 130ms ease-out both}
+.mobile-more-sheet.open .mobile-more-panel{animation:v37SheetIn var(--motion-panel) var(--motion-snap) both}
+@keyframes v37SheetIn{from{opacity:.9;transform:translate3d(0,14px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+
+/* Boards and dynamic workspace affordances. */
+.boards-grid .board-card{will-change:auto}
+.boards-grid .board-card:hover,.empty-board-create:hover{box-shadow:0 16px 38px rgba(0,0,0,.24)}
+.board-card-stats span,.status-pill,.approval-pill,.approval-mini,.activity-chip{
+  transition:background-color var(--motion-fast) ease,border-color var(--motion-fast) ease,color var(--motion-fast) ease;
+}
+.history-row{transition:background-color var(--motion-fast) ease}
+.history-row:hover{background:rgba(255,255,255,.018)}
+
+/* Lightweight loading and feedback polish. */
+.toast,.toast-item{animation:v37ToastIn var(--motion-panel) var(--motion-snap) both}
+@keyframes v37ToastIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+
+@media (max-width:900px){
+  .nav-item::before{left:50%;top:auto;bottom:2px;width:18px;height:2px;transform:translate3d(-50%,4px,0) scaleX(.55)}
+  .nav-item.active::before{transform:translate3d(-50%,0,0) scaleX(1)}
+}
+
+/* Coarse pointers get feedback but no hover-only travel. */
+@media (hover:none),(pointer:coarse){
+  html:not(.reduce-motion) .button,html:not(.reduce-motion) .icon-button,html:not(.reduce-motion) .account-button,
+  html:not(.reduce-motion) .presence-button,html:not(.reduce-motion) .nav-item,html:not(.reduce-motion) .mobile-more-item,
+  html:not(.reduce-motion) .budget-key{transition-duration:90ms}
+  html:not(.reduce-motion) .nav-item:hover{transform:none}
+}
+
+/* Avoid extra entrance work on very large/complex planner canvases. */
+.planner-world,.connections,.cursor-layer,.remote-cursor{animation:none!important}
+
+@media (prefers-reduced-motion:reduce){
+  :root{--motion-fast:0ms;--motion-ui:0ms;--motion-panel:0ms}
+  .view.active,.plan-view.active,.drawer.open .drawer-backdrop,.modal.open .modal-backdrop,
+  .drawer.open .drawer-panel,.modal.open .modal-card,.v25-settings.open .v25-settings-card,.presence-popover.open,
+  .v20-node-editor.show,.v34-node-editor.show,.mobile-more-sheet.open .mobile-more-backdrop,
+  .mobile-more-sheet.open .mobile-more-panel,.toast,.toast-item{animation:none!important}
+  .button,.icon-button,.account-button,.presence-button,.nav-item,.board-context-pill,.mobile-more-item,
+  .budget-key,.budget-filter,.cal-event,.empty-board-create,.boards-grid .board-card,.board-card,.v25-setting-section,
+  .venue-row,tr[data-open-event],.search-box,.brand-mark,.metric,.panel,.event-block,.block-shell,
+  .block-handle,.connection-line,[data-connection-node],.field input,.field select,.field textarea,.modal-card,.drawer-panel{
+    transition:none!important;
+  }
+}

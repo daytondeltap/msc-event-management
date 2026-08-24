@@ -1,10 +1,11 @@
 window.MSC_CONFIG = window.MSC_CONFIG || {};
 window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus:"", mii:"" };
 
-/* v35 production safe boot: storage sanitation, identity isolation, resilient styles, adaptive navigation, budget, sanity repairs and production QoL. */
+/* v37 production safe boot: storage sanitation, identity isolation, fast UI polish, adaptive navigation, budget, sanity repairs and production QoL. */
 (() => {
   'use strict';
   const BUILD='20260824-account-v35';
+  const POLISH='20260824-ui-v37';
   window.MSC_BOOT_STATE={phase:'core-ready',safeMode:true,errors:[],build:BUILD};
 
   // Branding only. Internal MSC_* runtime names intentionally stay unchanged.
@@ -49,7 +50,7 @@ window.MSC_CONFIG.aeroTracks = window.MSC_CONFIG.aeroTracks || { lease:"", lotus
   const addStyle=href=>{const base=href.split('?')[0];if([...document.styleSheets].some(s=>s.href&&s.href.includes(base)))return;const l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l)};
   [
     'features-v7.css','features-osm.css','features-v8.css','features-v9.css','features-v10.css','features-v11.css','features-v12.css','features-v13.css',
-    `features-v14.css?v=${BUILD}`,`features-v15.css?v=${BUILD}`,`features-v16.css?v=${BUILD}`,`features-v17.css?v=${BUILD}`,`features-v18.css?v=${BUILD}`,`features-v19.css?v=${BUILD}`,`features-v20.css?v=${BUILD}`,`features-v21.css?v=${BUILD}`,`features-v23.css?v=${BUILD}`,`features-v25.css?v=${BUILD}`,`features-v28-production.css?v=${BUILD}`,`features-v29-device.css?v=${BUILD}`,`features-v30-brand.css?v=${BUILD}`,`features-v31-stability.css?v=${BUILD}`,`features-v32-qol.css?v=${BUILD}`,`features-v33-prod.css?v=${BUILD}`
+    `features-v14.css?v=${BUILD}`,`features-v15.css?v=${BUILD}`,`features-v16.css?v=${BUILD}`,`features-v17.css?v=${BUILD}`,`features-v18.css?v=${BUILD}`,`features-v19.css?v=${BUILD}`,`features-v20.css?v=${BUILD}`,`features-v21.css?v=${BUILD}`,`features-v23.css?v=${BUILD}`,`features-v25.css?v=${BUILD}`,`features-v28-production.css?v=${BUILD}`,`features-v29-device.css?v=${BUILD}`,`features-v30-brand.css?v=${BUILD}`,`features-v31-stability.css?v=${BUILD}`,`features-v32-qol.css?v=${BUILD}`,`features-v33-prod.css?v=${BUILD}`,`features-v37-polish.css?v=${POLISH}`
   ].forEach(addStyle);
 
   // Apply the saved appearance without loading the old UI enhancement stack.
