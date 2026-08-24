@@ -24,13 +24,20 @@ test('v37 polish stays short, blur-free and does not disturb planner coordinates
   expect(source).not.toMatch(/backdrop-filter\s*:\s*blur/i);
   expect(source).toContain('.planner-world,.connections,.cursor-layer,.remote-cursor{animation:none!important}');
 
-  const tokens=await page.evaluate(()=>{
-    const s=getComputedStyle(document.documentElement);
-    return {fast:s.getPropertyValue('--motion-fast').trim(),ui:s.getPropertyValue('--motion-ui').trim(),panel:s.getPropertyValue('--motion-panel').trim()};
+  const timing=await page.evaluate(()=>{
+    const root=getComputedStyle(document.documentElement);
+    const button=getComputedStyle(document.querySelector('#newEventButton'));
+    return {
+      fast:root.getPropertyValue('--motion-fast').trim(),
+      ui:root.getPropertyValue('--motion-ui').trim(),
+      panel:root.getPropertyValue('--motion-panel').trim(),
+      button:button.transitionDuration
+    };
   });
-  expect(seconds(tokens.fast)).toBeLessThanOrEqual(.12);
-  expect(seconds(tokens.ui)).toBeLessThanOrEqual(.16);
-  expect(seconds(tokens.panel)).toBeLessThanOrEqual(.19);
+  expect(seconds(timing.fast)).toBeLessThanOrEqual(.12);
+  expect(seconds(timing.ui)).toBeLessThanOrEqual(.16);
+  expect(seconds(timing.panel)).toBeLessThanOrEqual(.19);
+  expect(seconds(timing.button)).toBeLessThanOrEqual(.16);
 
   await page.locator('#accountButton').click();
   await expect(page.locator('#accountModal')).toHaveClass(/open/);
@@ -63,7 +70,8 @@ test('reduced-motion removes v37 animations and transitions',async({browser})=>{
     view:getComputedStyle(document.querySelector('.view.active')).animationName
   }));
   expect(values.modal).toBe('none');
-  expect(seconds(values.button)).toBe(0);
+  // Chromium may serialize a disabled transition as 0.00001s internally.
+  expect(seconds(values.button)).toBeLessThanOrEqual(.00002);
   expect(values.view).toBe('none');
   await context.close();
 });
