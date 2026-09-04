@@ -120,8 +120,10 @@ jobs:
             --exclude='.git' \
             --exclude='.github' \
             host/ site/
-          cp vex-source/index.html vex-source/styles.css vex-source/collab.css site/vex-cad/
-          cp -R vex-source/src site/vex-cad/src
+          cp vex-source/index.html vex-source/styles.css vex-source/collab.css vex-source/settings.css site/vex-cad/
+          cp -R vex-source/src site/vex-cad/src-studio1
+          sed -i 's#./src/app-stable.js?v=studio1#./src-studio1/app-stable.js?v=studio1#g' site/vex-cad/index.html
+          sed -i 's#./src/studio-settings.js?v=studio1#./src-studio1/studio-settings.js?v=studio1#g' site/vex-cad/index.html
           cp -R vex-source/.vex-parts-cache/. site/vex-cad/parts/
           cp -R vex-source/.browser-runtime-cache/vendor site/vex-cad/vendor
           cp -R vex-source/.browser-runtime-cache/occt site/vex-cad/occt
@@ -136,9 +138,13 @@ jobs:
           test -s ../site/vex-cad/index.html
           test -s ../site/vex-cad/styles.css
           test -s ../site/vex-cad/collab.css
-          test -s ../site/vex-cad/src/app-stable.js
-          test -s ../site/vex-cad/src/multiplayer.js
-          grep -q './src/app-stable.js?v=stable4' ../site/vex-cad/index.html
+          test -s ../site/vex-cad/settings.css
+          test -s ../site/vex-cad/src-studio1/app-stable.js
+          test -s ../site/vex-cad/src-studio1/studio-settings.js
+          test -s ../site/vex-cad/src-studio1/settings.js
+          test -s ../site/vex-cad/src-studio1/multiplayer.js
+          grep -q './src-studio1/app-stable.js?v=studio1' ../site/vex-cad/index.html
+          grep -q './src-studio1/studio-settings.js?v=studio1' ../site/vex-cad/index.html
           test -s ../site/vex-cad/vendor/three.module.js
           test -s ../site/vex-cad/vendor/three.core.js
           test -s ../site/vex-cad/vendor/supabase.js
@@ -148,7 +154,7 @@ jobs:
           test -s ../site/vex-cad/occt/occt-import-js.js
           test -s ../site/vex-cad/occt/occt-import-js.wasm
 
-      - name: Browser smoke VEX CAD library and rendering
+      - name: Browser smoke VEX CAD library rendering and controls
         working-directory: vex-source
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.62.1
