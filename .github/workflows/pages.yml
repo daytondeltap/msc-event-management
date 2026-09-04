@@ -108,13 +108,14 @@ jobs:
       - name: Stage combined static site
         run: |
           rm -rf site
-          mkdir -p site/vex-cad/parts
+          mkdir -p site/vex-cad/parts site/vex-cad/src-libfix2
           rsync -a \
             --exclude='.git' \
             --exclude='.github' \
             host/ site/
           cp vex-source/index.html vex-source/styles.css site/vex-cad/
-          cp -R vex-source/src site/vex-cad/src
+          cp -R vex-source/src/. site/vex-cad/src-libfix2/
+          sed -i 's#./src/app.js#./src-libfix2/app.js#' site/vex-cad/index.html
           cp -R vex-source/.vex-parts-cache/. site/vex-cad/parts/
           cp -R vex-source/.browser-runtime-cache/vendor site/vex-cad/vendor
           cp -R vex-source/.browser-runtime-cache/occt site/vex-cad/occt
@@ -127,6 +128,8 @@ jobs:
           find src -name '*.js' -print0 | xargs -0 -n1 node --check
           test -s ../site/vex-cad/index.html
           test -s ../site/vex-cad/styles.css
+          test -s ../site/vex-cad/src-libfix2/app.js
+          grep -q './src-libfix2/app.js' ../site/vex-cad/index.html
           test -s ../site/vex-cad/vendor/three.module.js
           test -s ../site/vex-cad/vendor/addons/controls/OrbitControls.js
           test -s ../site/vex-cad/vendor/addons/controls/TransformControls.js
