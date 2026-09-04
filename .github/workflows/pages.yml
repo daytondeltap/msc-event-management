@@ -21,7 +21,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - name: Checkout MSC site
         uses: actions/checkout@v7
@@ -82,7 +82,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: vex-source/.browser-runtime-cache
-          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-v1
+          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-supabase-2.115.0-v2
 
       - name: Build VEX browser runtime cache
         if: steps.runtime-cache.outputs.cache-hit != 'true'
@@ -90,32 +90,37 @@ jobs:
         run: |
           rm -rf .browser-runtime-cache node_modules
           mkdir -p .browser-runtime-cache/vendor/addons/controls .browser-runtime-cache/occt
-          npm install --no-save --ignore-scripts --no-audit --no-fund three@0.185.1 @sunbox/occt-import-js@0.0.28
+          npm install --no-save --ignore-scripts --no-audit --no-fund \
+            three@0.185.1 \
+            @sunbox/occt-import-js@0.0.28 \
+            @supabase/supabase-js@2.115.0
           cp node_modules/three/build/three.module.js .browser-runtime-cache/vendor/three.module.js
           cp node_modules/three/examples/jsm/controls/OrbitControls.js .browser-runtime-cache/vendor/addons/controls/OrbitControls.js
           cp node_modules/three/examples/jsm/controls/TransformControls.js .browser-runtime-cache/vendor/addons/controls/TransformControls.js
           cp node_modules/@sunbox/occt-import-js/dist/occt-import-js-worker.js .browser-runtime-cache/occt/occt-import-js-worker.js
           cp node_modules/@sunbox/occt-import-js/dist/occt-import-js.js .browser-runtime-cache/occt/occt-import-js.js
           cp node_modules/@sunbox/occt-import-js/dist/occt-import-js.wasm .browser-runtime-cache/occt/occt-import-js.wasm
+          SUPABASE_UMD="$(find node_modules/@supabase/supabase-js -path '*/dist/umd/supabase.js' -print -quit)"
+          test -n "$SUPABASE_UMD"
+          cp "$SUPABASE_UMD" .browser-runtime-cache/vendor/supabase.js
 
       - name: Save VEX browser runtimes
         if: steps.runtime-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: vex-source/.browser-runtime-cache
-          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-v1
+          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-supabase-2.115.0-v2
 
       - name: Stage combined static site
         run: |
           rm -rf site
-          mkdir -p site/vex-cad/parts site/vex-cad/src-libfix2
+          mkdir -p site/vex-cad/parts
           rsync -a \
             --exclude='.git' \
             --exclude='.github' \
             host/ site/
-          cp vex-source/index.html vex-source/styles.css site/vex-cad/
-          cp -R vex-source/src/. site/vex-cad/src-libfix2/
-          sed -i 's#./src/app.js#./src-libfix2/app.js#' site/vex-cad/index.html
+          cp vex-source/index.html vex-source/styles.css vex-source/collab.css site/vex-cad/
+          cp -R vex-source/src site/vex-cad/src
           cp -R vex-source/.vex-parts-cache/. site/vex-cad/parts/
           cp -R vex-source/.browser-runtime-cache/vendor site/vex-cad/vendor
           cp -R vex-source/.browser-runtime-cache/occt site/vex-cad/occt
@@ -126,16 +131,36 @@ jobs:
         run: |
           node scripts/check-assets.mjs ../site/vex-cad/parts/manifest.json
           find src -name '*.js' -print0 | xargs -0 -n1 node --check
+          node --check scripts/browser-smoke.mjs
           test -s ../site/vex-cad/index.html
           test -s ../site/vex-cad/styles.css
-          test -s ../site/vex-cad/src-libfix2/app.js
-          grep -q './src-libfix2/app.js' ../site/vex-cad/index.html
+          test -s ../site/vex-cad/collab.css
+          test -s ../site/vex-cad/src/app-stable.js
+          test -s ../site/vex-cad/src/multiplayer.js
+          grep -q './src/app-stable.js?v=stable4' ../site/vex-cad/index.html
           test -s ../site/vex-cad/vendor/three.module.js
+          test -s ../site/vex-cad/vendor/supabase.js
           test -s ../site/vex-cad/vendor/addons/controls/OrbitControls.js
           test -s ../site/vex-cad/vendor/addons/controls/TransformControls.js
           test -s ../site/vex-cad/occt/occt-import-js-worker.js
           test -s ../site/vex-cad/occt/occt-import-js.js
           test -s ../site/vex-cad/occt/occt-import-js.wasm
+
+      - name: Browser smoke VEX CAD library and rendering
+        working-directory: vex-source
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.62.1
+          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$CHROME_PATH"
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory ../site > "$RUNNER_TEMP/vex-http.log" 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/vex-cad/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4173/vex-cad/ >/dev/null
+          CHROME_PATH="$CHROME_PATH" VEX_SMOKE_URL='http://127.0.0.1:4173/vex-cad/' node scripts/browser-smoke.mjs
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
