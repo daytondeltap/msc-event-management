@@ -82,7 +82,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: vex-source/.browser-runtime-cache
-          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-supabase-2.115.0-v2
+          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-supabase-2.115.0-v3
 
       - name: Build VEX browser runtime cache
         if: steps.runtime-cache.outputs.cache-hit != 'true'
@@ -95,6 +95,7 @@ jobs:
             @sunbox/occt-import-js@0.0.28 \
             @supabase/supabase-js@2.115.0
           cp node_modules/three/build/three.module.js .browser-runtime-cache/vendor/three.module.js
+          cp node_modules/three/build/three.core.js .browser-runtime-cache/vendor/three.core.js
           cp node_modules/three/examples/jsm/controls/OrbitControls.js .browser-runtime-cache/vendor/addons/controls/OrbitControls.js
           cp node_modules/three/examples/jsm/controls/TransformControls.js .browser-runtime-cache/vendor/addons/controls/TransformControls.js
           cp node_modules/@sunbox/occt-import-js/dist/occt-import-js-worker.js .browser-runtime-cache/occt/occt-import-js-worker.js
@@ -109,7 +110,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: vex-source/.browser-runtime-cache
-          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-supabase-2.115.0-v2
+          key: hosted-vex-runtime-three-0.185.1-occt-0.0.28-supabase-2.115.0-v3
 
       - name: Stage combined static site
         run: |
@@ -139,6 +140,7 @@ jobs:
           test -s ../site/vex-cad/src/multiplayer.js
           grep -q './src/app-stable.js?v=stable4' ../site/vex-cad/index.html
           test -s ../site/vex-cad/vendor/three.module.js
+          test -s ../site/vex-cad/vendor/three.core.js
           test -s ../site/vex-cad/vendor/supabase.js
           test -s ../site/vex-cad/vendor/addons/controls/OrbitControls.js
           test -s ../site/vex-cad/vendor/addons/controls/TransformControls.js
