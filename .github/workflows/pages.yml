@@ -120,10 +120,11 @@ jobs:
             --exclude='.git' \
             --exclude='.github' \
             host/ site/
-          cp vex-source/index.html vex-source/styles.css vex-source/collab.css vex-source/settings.css site/vex-cad/
-          cp -R vex-source/src site/vex-cad/src-studio1
-          sed -i 's#./src/app-stable.js?v=studio1#./src-studio1/app-stable.js?v=studio1#g' site/vex-cad/index.html
-          sed -i 's#./src/studio-settings.js?v=studio1#./src-studio1/studio-settings.js?v=studio1#g' site/vex-cad/index.html
+          cp vex-source/index.html vex-source/styles.css vex-source/collab.css vex-source/settings.css vex-source/advanced.css site/vex-cad/
+          cp -R vex-source/src site/vex-cad/src-advanced1
+          sed -i 's#./src/app-stable.js?v=advanced1#./src-advanced1/app-stable.js?v=advanced1#g' site/vex-cad/index.html
+          sed -i 's#./src/studio-settings.js?v=advanced1#./src-advanced1/studio-settings.js?v=advanced1#g' site/vex-cad/index.html
+          sed -i 's#./src/advanced-features.js?v=advanced1#./src-advanced1/advanced-features.js?v=advanced1#g' site/vex-cad/index.html
           cp -R vex-source/.vex-parts-cache/. site/vex-cad/parts/
           cp -R vex-source/.browser-runtime-cache/vendor site/vex-cad/vendor
           cp -R vex-source/.browser-runtime-cache/occt site/vex-cad/occt
@@ -135,16 +136,22 @@ jobs:
           node scripts/check-assets.mjs ../site/vex-cad/parts/manifest.json
           find src -name '*.js' -print0 | xargs -0 -n1 node --check
           node --check scripts/browser-smoke.mjs
+          node --check scripts/compress-parts.mjs
           test -s ../site/vex-cad/index.html
           test -s ../site/vex-cad/styles.css
           test -s ../site/vex-cad/collab.css
           test -s ../site/vex-cad/settings.css
-          test -s ../site/vex-cad/src-studio1/app-stable.js
-          test -s ../site/vex-cad/src-studio1/studio-settings.js
-          test -s ../site/vex-cad/src-studio1/settings.js
-          test -s ../site/vex-cad/src-studio1/multiplayer.js
-          grep -q './src-studio1/app-stable.js?v=studio1' ../site/vex-cad/index.html
-          grep -q './src-studio1/studio-settings.js?v=studio1' ../site/vex-cad/index.html
+          test -s ../site/vex-cad/advanced.css
+          test -s ../site/vex-cad/src-advanced1/app-stable.js
+          test -s ../site/vex-cad/src-advanced1/studio-settings.js
+          test -s ../site/vex-cad/src-advanced1/advanced-features.js
+          test -s ../site/vex-cad/src-advanced1/settings.js
+          test -s ../site/vex-cad/src-advanced1/simulation-core.js
+          test -s ../site/vex-cad/src-advanced1/tutorial-core.js
+          test -s ../site/vex-cad/src-advanced1/multiplayer.js
+          grep -q './src-advanced1/app-stable.js?v=advanced1' ../site/vex-cad/index.html
+          grep -q './src-advanced1/studio-settings.js?v=advanced1' ../site/vex-cad/index.html
+          grep -q './src-advanced1/advanced-features.js?v=advanced1' ../site/vex-cad/index.html
           test -s ../site/vex-cad/vendor/three.module.js
           test -s ../site/vex-cad/vendor/three.core.js
           test -s ../site/vex-cad/vendor/supabase.js
@@ -154,7 +161,15 @@ jobs:
           test -s ../site/vex-cad/occt/occt-import-js.js
           test -s ../site/vex-cad/occt/occt-import-js.wasm
 
-      - name: Browser smoke VEX CAD library rendering and controls
+      - name: Compress VEX CAD lazy meshes
+        working-directory: vex-source
+        run: |
+          node scripts/compress-parts.mjs ../site/vex-cad/parts
+          test "$(find ../site/vex-cad/parts/mesh -type f -name '*.vxm' | wc -l)" -eq 0
+          test "$(find ../site/vex-cad/parts/mesh -type f -name '*.vxm.gz' | wc -l)" -gt 0
+          grep -q '"meshCompression":"gzip"' ../site/vex-cad/parts/manifest.json
+
+      - name: Browser smoke VEX CAD advanced features
         working-directory: vex-source
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.62.1
