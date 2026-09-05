@@ -121,10 +121,12 @@ jobs:
             --exclude='.github' \
             host/ site/
           cp vex-source/index.html vex-source/styles.css vex-source/collab.css vex-source/settings.css vex-source/advanced.css site/vex-cad/
-          cp -R vex-source/src site/vex-cad/src-advanced1
-          sed -i 's#./src/app-stable.js?v=advanced1#./src-advanced1/app-stable.js?v=advanced1#g' site/vex-cad/index.html
-          sed -i 's#./src/studio-settings.js?v=advanced1#./src-advanced1/studio-settings.js?v=advanced1#g' site/vex-cad/index.html
-          sed -i 's#./src/advanced-features.js?v=advanced1#./src-advanced1/advanced-features.js?v=advanced1#g' site/vex-cad/index.html
+          cp -R vex-source/src site/vex-cad/src-advanced2
+          sed -i 's#./src/app-stable.js?v=advanced1#./src-advanced2/app-stable.js?v=advanced2#g' site/vex-cad/index.html
+          sed -i 's#./src/studio-settings.js?v=advanced1#./src-advanced2/studio-settings.js?v=advanced2#g' site/vex-cad/index.html
+          sed -i 's#./src/advanced-features.js?v=advanced1#./src-advanced2/advanced-features.js?v=advanced2#g' site/vex-cad/index.html
+          sed -i 's#settings.css?v=advanced1#settings.css?v=advanced2#g' site/vex-cad/index.html
+          sed -i 's#advanced.css?v=advanced1#advanced.css?v=advanced2#g' site/vex-cad/index.html
           cp -R vex-source/.vex-parts-cache/. site/vex-cad/parts/
           cp -R vex-source/.browser-runtime-cache/vendor site/vex-cad/vendor
           cp -R vex-source/.browser-runtime-cache/occt site/vex-cad/occt
@@ -142,16 +144,16 @@ jobs:
           test -s ../site/vex-cad/collab.css
           test -s ../site/vex-cad/settings.css
           test -s ../site/vex-cad/advanced.css
-          test -s ../site/vex-cad/src-advanced1/app-stable.js
-          test -s ../site/vex-cad/src-advanced1/studio-settings.js
-          test -s ../site/vex-cad/src-advanced1/advanced-features.js
-          test -s ../site/vex-cad/src-advanced1/settings.js
-          test -s ../site/vex-cad/src-advanced1/simulation-core.js
-          test -s ../site/vex-cad/src-advanced1/tutorial-core.js
-          test -s ../site/vex-cad/src-advanced1/multiplayer.js
-          grep -q './src-advanced1/app-stable.js?v=advanced1' ../site/vex-cad/index.html
-          grep -q './src-advanced1/studio-settings.js?v=advanced1' ../site/vex-cad/index.html
-          grep -q './src-advanced1/advanced-features.js?v=advanced1' ../site/vex-cad/index.html
+          test -s ../site/vex-cad/src-advanced2/app-stable.js
+          test -s ../site/vex-cad/src-advanced2/studio-settings.js
+          test -s ../site/vex-cad/src-advanced2/advanced-features.js
+          test -s ../site/vex-cad/src-advanced2/settings.js
+          test -s ../site/vex-cad/src-advanced2/simulation-core.js
+          test -s ../site/vex-cad/src-advanced2/tutorial-core.js
+          test -s ../site/vex-cad/src-advanced2/multiplayer.js
+          grep -q './src-advanced2/app-stable.js?v=advanced2' ../site/vex-cad/index.html
+          grep -q './src-advanced2/studio-settings.js?v=advanced2' ../site/vex-cad/index.html
+          grep -q './src-advanced2/advanced-features.js?v=advanced2' ../site/vex-cad/index.html
           test -s ../site/vex-cad/vendor/three.module.js
           test -s ../site/vex-cad/vendor/three.core.js
           test -s ../site/vex-cad/vendor/supabase.js
@@ -183,7 +185,7 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:4173/vex-cad/ >/dev/null
-          CHROME_PATH="$CHROME_PATH" VEX_SMOKE_URL='http://127.0.0.1:4173/vex-cad/' node scripts/browser-smoke.mjs
+          timeout 120s env CHROME_PATH="$CHROME_PATH" VEX_SMOKE_URL='http://127.0.0.1:4173/vex-cad/' node scripts/browser-smoke.mjs
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
