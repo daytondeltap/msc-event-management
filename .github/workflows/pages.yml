@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: vex-source/.vex-parts-cache
-          key: hosted-vex-iq-github-step-mirror-v4-standoffs
+          key: hosted-vex-iq-github-step-mirror-v5-explicit-standoffs
 
       - name: Generate VEX geometry cache
         if: steps.vex-cache.outputs.cache-hit != 'true'
@@ -75,7 +75,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: vex-source/.vex-parts-cache
-          key: hosted-vex-iq-github-step-mirror-v4-standoffs
+          key: hosted-vex-iq-github-step-mirror-v5-explicit-standoffs
 
       - name: Restore VEX browser runtimes
         id: runtime-cache
@@ -121,12 +121,12 @@ jobs:
             --exclude='.github' \
             host/ site/
           cp vex-source/index.html vex-source/styles.css vex-source/collab.css vex-source/settings.css vex-source/advanced.css site/vex-cad/
-          cp -R vex-source/src site/vex-cad/src-align4
-          sed -i 's#./src/app-stable.js?v=advanced1#./src-align4/app-stable.js?v=align4#g' site/vex-cad/index.html
-          sed -i 's#./src/studio-settings.js?v=advanced1#./src-align4/studio-settings.js?v=align4#g' site/vex-cad/index.html
-          sed -i 's#./src/advanced-features.js?v=advanced1#./src-align4/advanced-features.js?v=align4#g' site/vex-cad/index.html
-          sed -i 's#settings.css?v=advanced1#settings.css?v=align4#g' site/vex-cad/index.html
-          sed -i 's#advanced.css?v=advanced1#advanced.css?v=align4#g' site/vex-cad/index.html
+          cp -R vex-source/src site/vex-cad/src-align5
+          sed -i 's#./src/app-stable.js?v=advanced1#./src-align5/app-stable.js?v=align5#g' site/vex-cad/index.html
+          sed -i 's#./src/studio-settings.js?v=advanced1#./src-align5/studio-settings.js?v=align5#g' site/vex-cad/index.html
+          sed -i 's#./src/advanced-features.js?v=advanced1#./src-align5/advanced-features.js?v=align5#g' site/vex-cad/index.html
+          sed -i 's#settings.css?v=advanced1#settings.css?v=align5#g' site/vex-cad/index.html
+          sed -i 's#advanced.css?v=advanced1#advanced.css?v=align5#g' site/vex-cad/index.html
           cp -R vex-source/.vex-parts-cache/. site/vex-cad/parts/
           cp -R vex-source/.browser-runtime-cache/vendor site/vex-cad/vendor
           cp -R vex-source/.browser-runtime-cache/occt site/vex-cad/occt
@@ -144,18 +144,19 @@ jobs:
           test -s ../site/vex-cad/collab.css
           test -s ../site/vex-cad/settings.css
           test -s ../site/vex-cad/advanced.css
-          test -s ../site/vex-cad/src-align4/app-stable.js
-          test -s ../site/vex-cad/src-align4/studio-settings.js
-          test -s ../site/vex-cad/src-align4/advanced-features.js
-          test -s ../site/vex-cad/src-align4/settings.js
-          test -s ../site/vex-cad/src-align4/simulation-core.js
-          test -s ../site/vex-cad/src-align4/tutorial-core.js
-          test -s ../site/vex-cad/src-align4/multiplayer.js
-          grep -q './src-align4/app-stable.js?v=align4' ../site/vex-cad/index.html
-          grep -q './src-align4/studio-settings.js?v=align4' ../site/vex-cad/index.html
-          grep -q './src-align4/advanced-features.js?v=align4' ../site/vex-cad/index.html
+          test -s ../site/vex-cad/src-align5/app-stable.js
+          test -s ../site/vex-cad/src-align5/studio-settings.js
+          test -s ../site/vex-cad/src-align5/advanced-features.js
+          test -s ../site/vex-cad/src-align5/settings.js
+          test -s ../site/vex-cad/src-align5/simulation-core.js
+          test -s ../site/vex-cad/src-align5/tutorial-core.js
+          test -s ../site/vex-cad/src-align5/multiplayer.js
+          grep -q './src-align5/app-stable.js?v=align5' ../site/vex-cad/index.html
+          grep -q './src-align5/studio-settings.js?v=align5' ../site/vex-cad/index.html
+          grep -q './src-align5/advanced-features.js?v=align5' ../site/vex-cad/index.html
           grep -q 'id="autoAlignBtn"' ../site/vex-cad/index.html
           grep -q 'Ctrl/Cmd+Shift+A Auto Align' ../site/vex-cad/index.html
+          grep -q '"type":"standoff"' ../site/vex-cad/parts/manifest.json
           grep -q 'standoff-end-geometry' ../site/vex-cad/parts/manifest.json
           test -s ../site/vex-cad/vendor/three.module.js
           test -s ../site/vex-cad/vendor/three.core.js
