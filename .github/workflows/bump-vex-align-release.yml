@@ -1,0 +1,45 @@
+name: Bump VEX Auto Align release
+
+on:
+  push:
+    paths:
+      - '.github/vex-align-release'
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Bump geometry and module cache namespaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/pages.yml')
+          s=p.read_text()
+          s=s.replace('hosted-vex-iq-github-step-mirror-v3','hosted-vex-iq-github-step-mirror-v4-standoffs')
+          s=s.replace('site/vex-cad/src-advanced2','site/vex-cad/src-align3')
+          s=s.replace('./src-advanced2/app-stable.js?v=advanced2','./src-align3/app-stable.js?v=align3')
+          s=s.replace('./src-advanced2/studio-settings.js?v=advanced2','./src-align3/studio-settings.js?v=align3')
+          s=s.replace('./src-advanced2/advanced-features.js?v=advanced2','./src-align3/advanced-features.js?v=align3')
+          s=s.replace('settings.css?v=advanced2','settings.css?v=align3')
+          s=s.replace('advanced.css?v=advanced2','advanced.css?v=align3')
+          p.write_text(s)
+          PY
+          grep -q 'hosted-vex-iq-github-step-mirror-v4-standoffs' .github/workflows/pages.yml
+          grep -q 'src-align3/app-stable.js?v=align3' .github/workflows/pages.yml
+      - name: Commit release bump
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/pages.yml
+          git diff --cached --quiet && exit 0
+          git commit -m 'deploy: refresh VEX standoffs and auto align UI'
+          git push origin HEAD:main
